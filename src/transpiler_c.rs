@@ -1,48 +1,71 @@
 use crate::c::*;
 use crate::palel::*;
+use crate::toolkit_c::CToolKit;
 
-pub fn transpile(input: &Src) -> CSrc {
+pub fn transpile(input: &Src, toolkit: &CToolKit) -> CSrc {
     let mut src = CSrc {
         includes: vec![],
         functions: vec![],
     };
     if let Some(program) = input.programs.get(0) {
-        src.functions.push(transpile_program(program));
+        let (program, patch) = transpile_program(program, toolkit);
+        src.functions.push(program);
+        src.merge(&patch);
     }
     src
 }
 
-fn transpile_program(input: &Program) -> CFunction {
-    CFunction {
+fn transpile_program(input: &Program, toolkit: &CToolKit) -> (CFunction, CSrcPatch) {
+    let mut patch = CSrcPatch::default();
+    let (block, in_patch) = transpile_block(&input.do_block, toolkit);
+    patch.merge(&in_patch);
+    let function = CFunction {
         name: "main".to_string(),
         return_type: void_type(),
-        block: transpile_block(&input.do_block),
-    }
+        block: block,
+    };
+    (function, patch)
 }
 
-fn transpile_block(input: &DoBlock) -> CBlock {
+fn transpile_block(input: &DoBlock, toolkit: &CToolKit) -> (CBlock, CSrcPatch) {
     let mut statements: Vec<CStatement> = vec![];
+    let mut patch = CSrcPatch::default();
     for statement in &input.statements {
         match statement {
             Statement::ProcedureCall(procedure_call) => {
-                statements.push(transpile_procedure_call(procedure_call).to_statement());
+                let (statement, in_patch) = transpile_procedure_call(procedure_call, toolkit);
+                patch.merge(&in_patch);
+                statements.push(statement.to_statement());
             }
         }
     }
-    CBlock {
+    let block = CBlock {
         statements: statements,
-    }
+    };
+    (block, patch)
 }
 
-fn transpile_procedure_call(input: &ProcedureCall) -> CFunctionCall {
+fn transpile_procedure_call(
+    input: &ProcedureCall,
+    toolkit: &CToolKit,
+) -> (CFunctionCall, CSrcPatch) {
+    if !input.interface.is_empty() {
+        return toolkit.transpile_interface_call(input);
+    }
+    let function_call = CFunctionCall {
+        function_name: input.identifier.clone(),
+        arguments: transpile_arguments(&input.argument_list),
+    };
+
+    (function_call, CSrcPatch::default())
+}
+
+pub fn transpile_arguments(input: &Vec<Argument>) -> Vec<CArgument> {
     let mut arguments: Vec<CArgument> = vec![];
-    for argument in &input.argument_list {
+    for argument in input {
         arguments.push(transpile_argument(argument));
     }
-    CFunctionCall {
-        function_name: input.identifier.clone(),
-        arguments: arguments,
-    }
+    arguments
 }
 
 fn transpile_argument(input: &Argument) -> CArgument {
@@ -83,6 +106,8 @@ fn false_literal() -> CLiteral {
 mod tests {
     use super::*;
 
+    const toolkit: CToolKit = CToolKit {};
+
     #[test]
     fn test_transpile_hello_world() {
         let src = Src {
@@ -102,7 +127,7 @@ mod tests {
             }],
         };
 
-        let actual = transpile(&src);
+        let actual = transpile(&src, &toolkit);
         let expected = CSrc {
             includes: vec![CInclude {
                 file: "stdio.h".to_string(),

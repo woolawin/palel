@@ -4,7 +4,12 @@ pub struct CSrc {
     pub functions: Vec<CFunction>,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Default)]
+pub struct CSrcPatch {
+    pub includes: Vec<CInclude>,
+}
+
+#[derive(Debug, PartialEq, Clone)]
 pub struct CInclude {
     pub file: String,
 }
