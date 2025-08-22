@@ -2,10 +2,17 @@ use crate::c::*;
 
 pub fn render(src: &CSrc) -> String {
     let mut output = String::new();
+    for include in &src.includes {
+        output.push_str(&render_include(include));
+    }
     for function in &src.functions {
-        output.push_str(&render_function(&function));
+        output.push_str(&render_function(function));
     }
     output
+}
+
+pub fn render_include(include: &CInclude) -> String {
+    format!("#include <{}>\n", include.file)
 }
 
 fn render_function(function: &CFunction) -> String {
@@ -22,7 +29,7 @@ fn render_block(block: &CBlock) -> String {
     let mut output = String::new();
     output.push_str("{\n");
     for statement in &block.statements {
-        output.push_str(&render_statement(&statement));
+        output.push_str(&render_statement(statement));
     }
     output.push_str("}\n");
     output
@@ -84,6 +91,9 @@ mod tests {
     #[test]
     fn test_hello_word() {
         let src = CSrc {
+            includes: vec![CInclude {
+                file: "stdio.h".to_string(),
+            }],
             functions: vec![CFunction {
                 name: "main".to_string(),
                 return_type: CType {
@@ -104,6 +114,7 @@ mod tests {
         };
 
         let expected = r#"
+        #include <stdio.h>
         void main()
         {
         printf("Hello World");

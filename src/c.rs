@@ -1,6 +1,12 @@
 #[derive(Debug, PartialEq)]
 pub struct CSrc {
+    pub includes: Vec<CInclude>,
     pub functions: Vec<CFunction>,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct CInclude {
+    pub file: String,
 }
 
 #[derive(Debug, PartialEq)]

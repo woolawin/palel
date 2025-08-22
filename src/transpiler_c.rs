@@ -2,7 +2,10 @@ use crate::c::*;
 use crate::palel::*;
 
 pub fn transpile(input: &Src) -> CSrc {
-    let mut src = CSrc { functions: vec![] };
+    let mut src = CSrc {
+        includes: vec![],
+        functions: vec![],
+    };
     if let Some(program) = input.programs.get(0) {
         src.functions.push(transpile_program(program));
     }
@@ -101,6 +104,9 @@ mod tests {
 
         let actual = transpile(&src);
         let expected = CSrc {
+            includes: vec![CInclude {
+                file: "stdio.h".to_string(),
+            }],
             functions: vec![CFunction {
                 name: "main".to_string(),
                 return_type: CType {
