@@ -38,7 +38,7 @@ pub struct CFunctionCall {
 }
 
 impl CFunctionCall {
-    pub fn as_statement(self) -> CStatement {
+    pub fn to_statement(self) -> CStatement {
         return CStatement::FunctionCall(self);
     }
 }
@@ -55,7 +55,7 @@ pub enum CLiteral {
 }
 
 impl CLiteral {
-    pub fn as_argument(self) -> CArgument {
+    pub fn to_argument(self) -> CArgument {
         CArgument::Literal(self)
     }
 }

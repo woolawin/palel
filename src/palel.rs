@@ -26,7 +26,7 @@ pub struct ProcedureCall {
 }
 
 impl ProcedureCall {
-    pub fn as_statement(self) -> Statement {
+    pub fn to_statement(self) -> Statement {
         return Statement::ProcedureCall(self);
     }
 }
@@ -44,7 +44,7 @@ pub enum Literal {
 }
 
 impl Literal {
-    pub fn as_argument(self) -> Argument {
+    pub fn to_argument(self) -> Argument {
         Argument::Literal(self)
     }
 }

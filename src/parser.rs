@@ -54,7 +54,7 @@ fn parse_do_block(rule: Pair<'_, Rule>) -> DoBlock {
             Rule::procedure_call => {
                 do_block
                     .statements
-                    .push(parse_procedure_call(inner).as_statement());
+                    .push(parse_procedure_call(inner).to_statement());
             }
             _ => {}
         }
@@ -102,7 +102,7 @@ fn parse_argument_list(rule: Pair<'_, Rule>) -> Vec<Argument> {
     for inner in rule.into_inner() {
         match inner.as_rule() {
             Rule::string => {
-                arguments.push(Literal::String(get_string(inner)).as_argument());
+                arguments.push(Literal::String(get_string(inner)).to_argument());
             }
             _ => {}
         }
@@ -136,7 +136,7 @@ mod tests {
                             identifier: "print".to_string(),
                             argument_list: Vec::new(),
                         }
-                        .as_statement(),
+                        .to_statement(),
                     ],
                 },
             }],
@@ -160,10 +160,10 @@ mod tests {
                             interface: "debug".to_string(),
                             identifier: "print".to_string(),
                             argument_list: vec![
-                                Literal::String("Hello World".to_string()).as_argument(),
+                                Literal::String("Hello World".to_string()).to_argument(),
                             ],
                         }
-                        .as_statement(),
+                        .to_statement(),
                     ],
                 },
             }],

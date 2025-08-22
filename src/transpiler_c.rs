@@ -25,7 +25,7 @@ fn transpile_block(input: &DoBlock) -> CBlock {
     for statement in &input.statements {
         match statement {
             Statement::ProcedureCall(procedure_call) => {
-                statements.push(transpile_procedure_call(procedure_call).as_statement());
+                statements.push(transpile_procedure_call(procedure_call).to_statement());
             }
         }
     }
@@ -47,7 +47,7 @@ fn transpile_procedure_call(input: &ProcedureCall) -> CFunctionCall {
 
 fn transpile_argument(input: &Argument) -> CArgument {
     match input {
-        Argument::Literal(literal) => transpile_literal(&literal).as_argument(),
+        Argument::Literal(literal) => transpile_literal(&literal).to_argument(),
     }
 }
 
@@ -93,10 +93,10 @@ mod tests {
                             interface: "debug".to_string(),
                             identifier: "printf".to_string(),
                             argument_list: vec![
-                                Literal::String("Hello World".to_string()).as_argument(),
+                                Literal::String("Hello World".to_string()).to_argument(),
                             ],
                         }
-                        .as_statement(),
+                        .to_statement(),
                     ],
                 },
             }],
@@ -117,10 +117,10 @@ mod tests {
                         CFunctionCall {
                             function_name: "printf".to_string(),
                             arguments: vec![
-                                CLiteral::String("Hello World".to_string()).as_argument(),
+                                CLiteral::String("Hello World".to_string()).to_argument(),
                             ],
                         }
-                        .as_statement(),
+                        .to_statement(),
                     ],
                 },
             }],

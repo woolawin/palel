@@ -104,10 +104,10 @@ mod tests {
                         CFunctionCall {
                             function_name: "printf".to_string(),
                             arguments: vec![
-                                CLiteral::String("Hello World".to_string()).as_argument(),
+                                CLiteral::String("Hello World".to_string()).to_argument(),
                             ],
                         }
-                        .as_statement(),
+                        .to_statement(),
                     ],
                 },
             }],
