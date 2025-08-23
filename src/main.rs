@@ -1,5 +1,6 @@
 mod c;
 mod compilation_error;
+mod core;
 mod palel;
 mod parser;
 mod renderer_c;

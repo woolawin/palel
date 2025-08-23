@@ -1,11 +1,22 @@
-use crate::c::{CFunctionCall, CInclude, CSrc, CSrcPatch};
+use crate::c::{CFunctionCall, CInclude, CSrcPatch};
+use crate::compilation_error::UnknownInterface;
+use crate::core::Of;
 use crate::palel::ProcedureCall;
 use crate::transpiler_c::transpile_arguments;
 
 pub struct CToolKit {}
 
 impl CToolKit {
-    pub fn transpile_interface_call(&self, input: &ProcedureCall) -> (CFunctionCall, CSrcPatch) {
+    pub fn transpile_interface_call(
+        &self,
+        input: &ProcedureCall,
+    ) -> Of<(CFunctionCall, CSrcPatch)> {
+        if input.interface != "debug" {
+            return Of::Error(Box::new(UnknownInterface {
+                interface: input.interface.clone(),
+            }));
+        }
+
         let function_call = CFunctionCall {
             function_name: input.identifier.clone(),
             arguments: transpile_arguments(&input.argument_list),
@@ -17,6 +28,6 @@ impl CToolKit {
             }],
         };
 
-        (function_call, patch)
+        Of::Ok((function_call, patch))
     }
 }
