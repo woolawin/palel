@@ -1,6 +1,7 @@
 use crate::c::*;
 use crate::palel::*;
 use crate::toolkit_c::CToolKit;
+use crate::transpiler_c_patch::{merge_patch, patch_src};
 
 pub fn transpile(input: &Src, toolkit: &CToolKit) -> CSrc {
     let mut src = CSrc {
@@ -10,7 +11,7 @@ pub fn transpile(input: &Src, toolkit: &CToolKit) -> CSrc {
     if let Some(program) = input.programs.get(0) {
         let (program, patch) = transpile_program(program, toolkit);
         src.functions.push(program);
-        src.merge(&patch);
+        patch_src(&mut src, &patch);
     }
     src
 }
@@ -18,7 +19,7 @@ pub fn transpile(input: &Src, toolkit: &CToolKit) -> CSrc {
 fn transpile_program(input: &Program, toolkit: &CToolKit) -> (CFunction, CSrcPatch) {
     let mut patch = CSrcPatch::default();
     let (block, in_patch) = transpile_block(&input.do_block, toolkit);
-    patch.merge(&in_patch);
+    merge_patch(&mut patch, &in_patch);
     let function = CFunction {
         name: "main".to_string(),
         return_type: void_type(),
@@ -34,7 +35,7 @@ fn transpile_block(input: &DoBlock, toolkit: &CToolKit) -> (CBlock, CSrcPatch) {
         match statement {
             Statement::ProcedureCall(procedure_call) => {
                 let (statement, in_patch) = transpile_procedure_call(procedure_call, toolkit);
-                patch.merge(&in_patch);
+                merge_patch(&mut patch, &in_patch);
                 statements.push(statement.to_statement());
             }
         }

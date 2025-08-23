@@ -1,35 +1,22 @@
 use crate::c::{CInclude, CSrc, CSrcPatch};
 
-impl CSrcPatch {
-    pub fn merge(&mut self, other: &CSrcPatch) {
-        for include in &other.includes {
-            src_patch_include(self, include);
-        }
+pub fn patch_src(src: &mut CSrc, patch: &CSrcPatch) {
+    for include in &patch.includes {
+        patch_include(&mut src.includes, include);
     }
 }
 
-impl CSrc {
-    pub fn merge(&mut self, patch: &CSrcPatch) {
-        for include in &patch.includes {
-            patch_include(self, include);
-        }
+pub fn merge_patch(patch: &mut CSrcPatch, other: &CSrcPatch) {
+    for include in &other.includes {
+        patch_include(&mut patch.includes, include);
     }
 }
 
-fn patch_include(src: &mut CSrc, include: &CInclude) {
-    for existing in &src.includes {
+fn patch_include(includes: &mut Vec<CInclude>, include: &CInclude) {
+    for existing in includes.iter() {
         if existing.file == include.file {
             return;
         }
     }
-    src.includes.push(include.clone())
-}
-
-fn src_patch_include(src: &mut CSrcPatch, include: &CInclude) {
-    for existing in &src.includes {
-        if existing.file == include.file {
-            return;
-        }
-    }
-    src.includes.push(include.clone())
+    includes.push(include.clone())
 }
