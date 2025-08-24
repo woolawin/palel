@@ -11,10 +11,11 @@ mod transpiler_c_patch;
 
 use std::process;
 
-use crate::build_task::BuildTask;
+use crate::build_task::{BuildTask, run};
+
 fn main() {
     let mut task = BuildTask::default();
-    if let Some(err) = task.run() {
+    if let Some(err) = run(&mut task) {
         print!("{}", err.message());
         process::exit(err.exit_code());
     }
