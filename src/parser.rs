@@ -4,7 +4,7 @@ use pest_derive::Parser;
 
 use crate::compilation_error::{CompilationError, FailedToParseSrcFile};
 use crate::palel::*;
-use crate::project::SrcFile;
+use crate::build_task::SrcFile;
 
 #[derive(Parser)]
 #[grammar = "grammar.pest"]

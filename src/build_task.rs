@@ -4,9 +4,9 @@ use walkdir::WalkDir;
 use crate::compilation_error::{CompilationError, FailedToReadSrcFile, NoSourceFiles};
 
 #[derive(Debug, PartialEq)]
-pub struct Project {
+pub struct BuildTask {
     pub src_dir: String,
-    pub build_dir: String,
+    pub dest_dir: String,
     pub src_files: Vec<SrcFile>,
 }
 
@@ -16,22 +16,22 @@ pub struct SrcFile {
     pub content: String,
 }
 
-fn default_project() -> Project {
-    return Project {
+fn default_build_task() -> BuildTask {
+    return BuildTask {
         src_dir: "./src".to_string(),
-        build_dir: "./build".to_string(),
+        dest_dir: "./build".to_string(),
         src_files: Vec::new(),
     };
 }
 
-impl Default for Project {
+impl Default for BuildTask {
     fn default() -> Self {
-        default_project()
+        default_build_task()
     }
 }
 
-pub fn load(project: &mut Project) -> Option<Box<dyn CompilationError>> {
-    let src_dir = Path::new(project.src_dir.as_str());
+pub fn load(task: &mut BuildTask) -> Option<Box<dyn CompilationError>> {
+    let src_dir = Path::new(task.src_dir.as_str());
     for entry in WalkDir::new(src_dir)
         .into_iter()
         .filter_map(Result::ok)
@@ -54,15 +54,15 @@ pub fn load(project: &mut Project) -> Option<Box<dyn CompilationError>> {
                 }));
             }
         };
-        project.src_files.push(SrcFile {
+        task.src_files.push(SrcFile {
             file: file_name,
             content: file_contents,
         });
     }
 
-    if project.src_files.is_empty() {
+    if task.src_files.is_empty() {
         Some(Box::new(NoSourceFiles {
-            dir: project.src_dir.clone(),
+            dir: task.src_dir.clone(),
         }))
     } else {
         None

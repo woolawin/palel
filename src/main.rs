@@ -1,9 +1,9 @@
+mod build_task;
 mod c;
 mod compilation_error;
 mod core;
 mod palel;
 mod parser;
-mod project;
 mod renderer_c;
 mod toolkit_c;
 mod transpiler_c;
@@ -13,21 +13,21 @@ use parser::parse;
 use std::process;
 use transpiler_c::transpile;
 
+use crate::build_task::{BuildTask, load};
 use crate::core::Of;
 use crate::palel::Src;
-use crate::project::{Project, load};
 use crate::renderer_c::render;
 use crate::toolkit_c::CToolKit;
 
 fn main() {
-    let mut project = Project::default();
-    if let Some(err) = load(&mut project) {
+    let mut task = BuildTask::default();
+    if let Some(err) = load(&mut task) {
         print!("{}", err.message());
         process::exit(err.exit_code());
     }
 
     let mut src = Src::default();
-    for file in &project.src_files {
+    for file in &task.src_files {
         if let Some(err) = parse(&mut src, &file) {
             print!("{}", err.message());
             process::exit(err.exit_code());
