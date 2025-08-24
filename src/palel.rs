@@ -48,6 +48,7 @@ pub enum Literal {
     String(String),
     Number(String),
     Boolean(String),
+    Null,
 }
 
 impl Literal {

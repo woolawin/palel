@@ -5,7 +5,7 @@ procedure_identifier =  { identifier }
 interface_identifier =  { identifier }
 identifier           = @{ (ASCII_ALPHA_LOWER) ~ (ASCII_ALPHANUMERIC | "_")* }
 
-argument_list =  { literal ~ (WS* ~ "," ~ WS* ~ literal)* }
+argument_list =  { expression ~ (WS* ~ "," ~ WS* ~ expression)* }
 expression    =  { literal }
 literal       = _{ string | number | boolean | null }
 string        = @{ "\"" ~ (string_char)* ~ "\"" }

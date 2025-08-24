@@ -130,6 +130,7 @@ fn transpile_literal(input: &Literal) -> CLiteral {
                 false_literal()
             }
         }
+        Literal::Null => CLiteral::Number("0".to_string()),
     }
 }
 

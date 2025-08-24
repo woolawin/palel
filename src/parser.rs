@@ -121,13 +121,36 @@ fn parse_argument_list(rule: Pair<'_, Rule>) -> Vec<Expression> {
     let mut expressions: Vec<Expression> = Vec::new();
     for inner in rule.into_inner() {
         match inner.as_rule() {
-            Rule::string => {
-                expressions.push(Literal::String(get_string(inner)).to_expression());
+            Rule::expression => {
+                if let Some(expression) = parse_expression(inner) {
+                    expressions.push(expression);
+                }
             }
             _ => {}
         }
     }
     expressions
+}
+
+fn parse_expression(rule: Pair<'_, Rule>) -> Option<Expression> {
+    for inner in rule.into_inner() {
+        match inner.as_rule() {
+            Rule::string => {
+                return Some(Literal::String(get_string(inner)).to_expression());
+            }
+            Rule::number => {
+                return Some(Literal::Number(get_string(inner)).to_expression());
+            }
+            Rule::boolean => {
+                return Some(Literal::Boolean(get_string(inner)).to_expression());
+            }
+            Rule::null => {
+                return Some(Literal::Null.to_expression());
+            }
+            _ => {}
+        }
+    }
+    None
 }
 
 fn get_string(rule: Pair<'_, Rule>) -> String {
