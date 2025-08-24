@@ -23,16 +23,26 @@ pub fn transpile(input: &Src, toolkit: &CToolKit) -> Of<CSrc> {
 
 fn transpile_program(input: &Program, toolkit: &CToolKit) -> Of<(CFunction, CSrcPatch)> {
     let mut patch = CSrcPatch::default();
-    let block = match transpile_block(&input.do_block, toolkit) {
+    let mut block = match transpile_block(&input.do_block, toolkit) {
         Of::Error(err) => return Of::Error(err),
         Of::Ok((block, in_patch)) => {
             merge_patch(&mut patch, &in_patch);
             block
         }
     };
+    let ret_stmt = Return {
+        value: Literal::Number("0".to_string()).to_expression(),
+    };
+    match transpile_return(&ret_stmt) {
+        Of::Error(err) => return Of::Error(err),
+        Of::Ok((ret, in_patch)) => {
+            merge_patch(&mut patch, &in_patch);
+            block.statements.push(ret.to_statement());
+        }
+    };
     let function = CFunction {
         name: "main".to_string(),
-        return_type: void_type(),
+        return_type: int_type(),
         block: block,
     };
     Of::Ok((function, patch))
@@ -42,22 +52,42 @@ fn transpile_block(input: &DoBlock, toolkit: &CToolKit) -> Of<(CBlock, CSrcPatch
     let mut statements: Vec<CStatement> = vec![];
     let mut patch = CSrcPatch::default();
     for statement in &input.statements {
-        match statement {
-            Statement::ProcedureCall(procedure_call) => {
-                match transpile_procedure_call(procedure_call, toolkit) {
-                    Of::Error(err) => return Of::Error(err),
-                    Of::Ok((statement, in_patch)) => {
-                        merge_patch(&mut patch, &in_patch);
-                        statements.push(statement.to_statement());
-                    }
-                }
+        match transpile_statement(statement, toolkit) {
+            Of::Error(err) => return Of::Error(err),
+            Of::Ok((statement, in_patch)) => {
+                merge_patch(&mut patch, &in_patch);
+                statements.push(statement);
             }
-        }
+        };
     }
     let block = CBlock {
         statements: statements,
     };
     return Of::Ok((block, patch));
+}
+
+fn transpile_statement(input: &Statement, toolkit: &CToolKit) -> Of<(CStatement, CSrcPatch)> {
+    match input {
+        Statement::ProcedureCall(procedure_call) => {
+            match transpile_procedure_call(procedure_call, toolkit) {
+                Of::Error(err) => Of::Error(err),
+                Of::Ok((function_call, in_patch)) => {
+                    Of::Ok((function_call.to_statement(), in_patch))
+                }
+            }
+        }
+        Statement::Return(ret) => match transpile_return(ret) {
+            Of::Error(err) => Of::Error(err),
+            Of::Ok((ret, patch)) => Of::Ok((ret.to_statement(), patch)),
+        },
+    }
+}
+
+fn transpile_return(input: &Return) -> Of<(CReturn, CSrcPatch)> {
+    let ret = CReturn {
+        value: transpile_expression(&input.value),
+    };
+    Of::Ok((ret, CSrcPatch::default()))
 }
 
 fn transpile_procedure_call(
@@ -89,6 +119,12 @@ fn transpile_argument(input: &Argument) -> CArgument {
     }
 }
 
+fn transpile_expression(input: &Expression) -> CExpression {
+    match input {
+        Expression::Literal(literal) => transpile_literal(&literal).to_expression(),
+    }
+}
+
 fn transpile_literal(input: &Literal) -> CLiteral {
     match input {
         Literal::String(str) => CLiteral::String(str.clone()),
@@ -106,6 +142,12 @@ fn transpile_literal(input: &Literal) -> CLiteral {
 fn void_type() -> CType {
     CType {
         name: "void".to_string(),
+    }
+}
+
+fn int_type() -> CType {
+    CType {
+        name: "int".to_string(),
     }
 }
 
@@ -159,7 +201,7 @@ mod tests {
             functions: vec![CFunction {
                 name: "main".to_string(),
                 return_type: CType {
-                    name: "void".to_string(),
+                    name: "int".to_string(),
                 },
                 block: CBlock {
                     statements: vec![
@@ -168,6 +210,10 @@ mod tests {
                             arguments: vec![
                                 CLiteral::String("Hello World".to_string()).to_argument(),
                             ],
+                        }
+                        .to_statement(),
+                        CReturn {
+                            value: CLiteral::Number("0".to_string()).to_expression(),
                         }
                         .to_statement(),
                     ],

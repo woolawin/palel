@@ -34,6 +34,18 @@ pub struct CBlock {
 #[derive(Debug, PartialEq)]
 pub enum CStatement {
     FunctionCall(CFunctionCall),
+    Return(CReturn),
+}
+
+#[derive(Debug, PartialEq)]
+pub struct CReturn {
+    pub value: CExpression,
+}
+
+impl CReturn {
+    pub fn to_statement(self) -> CStatement {
+        CStatement::Return(self)
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -44,7 +56,7 @@ pub struct CFunctionCall {
 
 impl CFunctionCall {
     pub fn to_statement(self) -> CStatement {
-        return CStatement::FunctionCall(self);
+        CStatement::FunctionCall(self)
     }
 }
 
@@ -63,4 +75,13 @@ impl CLiteral {
     pub fn to_argument(self) -> CArgument {
         CArgument::Literal(self)
     }
+
+    pub fn to_expression(self) -> CExpression {
+        CExpression::Literal(self)
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub enum CExpression {
+    Literal(CLiteral),
 }

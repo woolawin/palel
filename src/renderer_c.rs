@@ -38,8 +38,16 @@ fn render_block(block: &CBlock) -> String {
 fn render_statement(statement: &CStatement) -> String {
     let mut output = match statement {
         CStatement::FunctionCall(function_call) => render_function_call(function_call),
+        CStatement::Return(ret) => render_return(ret),
     };
     output.push_str(";\n");
+    output
+}
+
+fn render_return(ret: &CReturn) -> String {
+    let mut output = String::new();
+    output.push_str("return ");
+    output.push_str(render_expression(&ret.value).as_str());
     output
 }
 
@@ -64,6 +72,11 @@ fn render_argument(argument: &CArgument) -> String {
     }
 }
 
+fn render_expression(argument: &CExpression) -> String {
+    match argument {
+        CExpression::Literal(literal) => render_literal(literal),
+    }
+}
 fn render_literal(literal: &CLiteral) -> String {
     match literal {
         CLiteral::Number(value) => value.clone(),
@@ -97,7 +110,7 @@ mod tests {
             functions: vec![CFunction {
                 name: "main".to_string(),
                 return_type: CType {
-                    name: "void".to_string(),
+                    name: "int".to_string(),
                 },
                 block: CBlock {
                     statements: vec![
@@ -108,6 +121,10 @@ mod tests {
                             ],
                         }
                         .to_statement(),
+                        CReturn {
+                            value: CLiteral::Number("0".to_string()).to_expression(),
+                        }
+                        .to_statement(),
                     ],
                 },
             }],
@@ -115,9 +132,10 @@ mod tests {
 
         let expected = r#"
         #include <stdio.h>
-        void main()
+        int main()
         {
         printf("Hello World");
+        return 0;
         }
         "#;
         let actual = render(&src);

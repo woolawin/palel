@@ -22,6 +22,12 @@ pub struct Program {
 #[derive(Debug, PartialEq)]
 pub enum Statement {
     ProcedureCall(ProcedureCall),
+    Return(Return),
+}
+
+#[derive(Debug, PartialEq)]
+pub struct Return {
+    pub value: Expression,
 }
 
 #[derive(Debug, PartialEq)]
@@ -53,4 +59,13 @@ impl Literal {
     pub fn to_argument(self) -> Argument {
         Argument::Literal(self)
     }
+
+    pub fn to_expression(self) -> Expression {
+        Expression::Literal(self)
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub enum Expression {
+    Literal(Literal),
 }
