@@ -1,33 +1,41 @@
 use pest::Parser;
 use pest::iterators::Pair;
 use pest_derive::Parser;
-use std::error::Error;
 
+use crate::compilation_error::{CompilationError, FailedToParseSrcFile};
 use crate::palel::*;
+use crate::project::SrcFile;
 
 #[derive(Parser)]
 #[grammar = "grammar.pest"]
 struct PalelParser;
 
-pub fn parse(contents: &str) -> Result<Src, Box<dyn Error>> {
-    let mut parse = PalelParser::parse(Rule::src, contents)?;
+pub fn parse(src: &mut Src, file: &SrcFile) -> Option<Box<dyn CompilationError>> {
+    let mut parse = match PalelParser::parse(Rule::src, &file.content) {
+        Ok(p) => p,
+        Err(_) => {
+            return Some(Box::new(FailedToParseSrcFile {
+                file: file.file.clone(),
+            }));
+        }
+    };
     if let Some(root) = parse.next() {
-        return Ok(parse_root(root));
+        parse_root(src, root);
+        None
+    } else {
+        Some(Box::new(FailedToParseSrcFile {
+            file: file.file.clone(),
+        }))
     }
-    Err(Box::<dyn Error>::from("failed to parse"))
 }
 
-fn parse_root(root: Pair<'_, Rule>) -> Src {
-    let mut src = Src {
-        programs: Vec::new(),
-    };
+fn parse_root(src: &mut Src, root: Pair<'_, Rule>) {
     for pair in root.into_inner() {
         match pair.as_rule() {
             Rule::program => src.programs.push(parse_program(pair)),
             _ => {}
         }
     }
-    src
 }
 
 fn parse_program(rule: Pair<'_, Rule>) -> Program {
@@ -119,6 +127,21 @@ fn get_string(rule: Pair<'_, Rule>) -> String {
 mod tests {
     use super::*;
 
+    fn run(input: &str) -> Src {
+        let file = SrcFile {
+            file: "./code.palel".to_string(),
+            content: input.to_string(),
+        };
+        let mut actual = Src::default();
+        match parse(&mut actual, &file) {
+            Some(err) => {
+                panic!("{}", err.message())
+            }
+            None => {}
+        }
+        actual
+    }
+
     #[test]
     fn test_simple_debug() {
         let input = r#"
@@ -126,7 +149,7 @@ mod tests {
             debug:print()
         end
         "#;
-        let actual = parse(input).unwrap();
+        let actual = run(input);
         let expected = Src {
             programs: vec![Program {
                 do_block: DoBlock {
@@ -151,7 +174,7 @@ mod tests {
             debug:print("Hello World")
         end
         "#;
-        let actual = parse(input).unwrap();
+        let actual = run(&input);
         let expected = Src {
             programs: vec![Program {
                 do_block: DoBlock {

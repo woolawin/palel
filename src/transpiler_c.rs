@@ -123,6 +123,15 @@ mod tests {
 
     const TOOLKIT: CToolKit = CToolKit {};
 
+    fn run(input: &Src) -> CSrc {
+        match transpile(&input, &TOOLKIT) {
+            Of::Ok(value) => value,
+            Of::Error(err) => {
+                panic!("{}", err.message())
+            }
+        }
+    }
+
     #[test]
     fn test_transpile_hello_world() {
         let src = Src {
@@ -142,7 +151,7 @@ mod tests {
             }],
         };
 
-        let actual = transpile(&src, &TOOLKIT).unwrap();
+        let actual = run(&src);
         let expected = CSrc {
             includes: vec![CInclude {
                 file: "stdio.h".to_string(),

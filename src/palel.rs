@@ -3,6 +3,12 @@ pub struct Src {
     pub programs: Vec<Program>,
 }
 
+impl Default for Src {
+    fn default() -> Src {
+        Src { programs: vec![] }
+    }
+}
+
 #[derive(Debug, PartialEq)]
 pub struct DoBlock {
     pub statements: Vec<Statement>,
