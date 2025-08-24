@@ -31,7 +31,7 @@ fn transpile_program(input: &Program, toolkit: &CToolKit) -> Of<(CFunction, CSrc
         }
     };
     let ret_stmt = Return {
-        value: Literal::Number("0".to_string()).to_expression(),
+        value: Some(Literal::Number("0".to_string()).to_expression()),
     };
     match transpile_return(&ret_stmt) {
         Of::Error(err) => return Of::Error(err),
@@ -85,8 +85,9 @@ fn transpile_statement(input: &Statement, toolkit: &CToolKit) -> Of<(CStatement,
 
 fn transpile_return(input: &Return) -> Of<(CReturn, CSrcPatch)> {
     let ret = CReturn {
-        value: transpile_expression(&input.value),
+        value: input.value.as_ref().map(|expr| transpile_expression(&expr)),
     };
+
     Of::Ok((ret, CSrcPatch::default()))
 }
 
@@ -208,7 +209,7 @@ mod tests {
                         }
                         .to_statement(),
                         CReturn {
-                            value: CLiteral::Number("0".to_string()).to_expression(),
+                            value: Some(CLiteral::Number("0".to_string()).to_expression()),
                         }
                         .to_statement(),
                     ],

@@ -46,8 +46,11 @@ fn render_statement(statement: &CStatement) -> String {
 
 fn render_return(ret: &CReturn) -> String {
     let mut output = String::new();
-    output.push_str("return ");
-    output.push_str(render_expression(&ret.value).as_str());
+    output.push_str("return");
+    if let Some(expr) = &ret.value {
+        output.push_str(" ");
+        output.push_str(render_expression(&expr).as_str());
+    }
     output
 }
 
@@ -116,7 +119,7 @@ mod tests {
                         }
                         .to_statement(),
                         CReturn {
-                            value: CLiteral::Number("0".to_string()).to_expression(),
+                            value: Some(CLiteral::Number("0".to_string()).to_expression()),
                         }
                         .to_statement(),
                     ],

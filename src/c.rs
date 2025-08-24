@@ -39,7 +39,7 @@ pub enum CStatement {
 
 #[derive(Debug, PartialEq)]
 pub struct CReturn {
-    pub value: CExpression,
+    pub value: Option<CExpression>,
 }
 
 impl CReturn {

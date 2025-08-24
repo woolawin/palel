@@ -76,10 +76,26 @@ fn parse_statement(rule: Pair<'_, Rule>) -> Option<Statement> {
             Rule::procedure_call => {
                 return Some(parse_procedure_call(inner).to_statement());
             }
+            Rule::return_stmt => {
+                return Some(parse_return_statement(inner).to_statement());
+            }
             _ => {}
         }
     }
     None
+}
+
+fn parse_return_statement(rule: Pair<'_, Rule>) -> Return {
+    let mut return_stmt = Return { value: None };
+    for inner in rule.into_inner() {
+        match inner.as_rule() {
+            Rule::expression => {
+                return_stmt.value = parse_expression(inner);
+            }
+            _ => {}
+        }
+    }
+    return_stmt
 }
 
 fn parse_procedure_call(rule: Pair<'_, Rule>) -> ProcedureCall {

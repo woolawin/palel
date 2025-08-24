@@ -27,7 +27,13 @@ pub enum Statement {
 
 #[derive(Debug, PartialEq)]
 pub struct Return {
-    pub value: Expression,
+    pub value: Option<Expression>,
+}
+
+impl Return {
+    pub fn to_statement(self) -> Statement {
+        Statement::Return(self)
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -39,7 +45,7 @@ pub struct ProcedureCall {
 
 impl ProcedureCall {
     pub fn to_statement(self) -> Statement {
-        return Statement::ProcedureCall(self);
+        Statement::ProcedureCall(self)
     }
 }
 
