@@ -57,19 +57,13 @@ fn render_function_call(function_call: &CFunctionCall) -> String {
     output.push_str("(");
     for (idx, argument) in function_call.arguments.iter().enumerate() {
         let is_last = idx == function_call.arguments.len() - 1;
-        output.push_str(&render_argument(argument));
+        output.push_str(&render_expression(argument));
         if !is_last {
             output.push_str(",");
         }
     }
     output.push_str(")");
     output
-}
-
-fn render_argument(argument: &CArgument) -> String {
-    match argument {
-        CArgument::Literal(literal) => render_literal(literal),
-    }
 }
 
 fn render_expression(argument: &CExpression) -> String {
@@ -117,7 +111,7 @@ mod tests {
                         CFunctionCall {
                             function_name: "printf".to_string(),
                             arguments: vec![
-                                CLiteral::String("Hello World".to_string()).to_argument(),
+                                CLiteral::String("Hello World".to_string()).to_expression(),
                             ],
                         }
                         .to_statement(),

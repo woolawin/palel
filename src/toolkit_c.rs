@@ -2,7 +2,7 @@ use crate::c::{CFunctionCall, CInclude, CSrcPatch};
 use crate::compilation_error::UnknownInterface;
 use crate::core::Of;
 use crate::palel::ProcedureCall;
-use crate::transpiler_c::transpile_arguments;
+use crate::transpiler_c::transpile_expressions;
 
 pub struct CToolKit {}
 
@@ -19,7 +19,7 @@ impl CToolKit {
 
         let function_call = CFunctionCall {
             function_name: input.identifier.clone(),
-            arguments: transpile_arguments(&input.argument_list),
+            arguments: transpile_expressions(&input.arguments),
         };
 
         let patch = CSrcPatch {

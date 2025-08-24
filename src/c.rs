@@ -51,7 +51,7 @@ impl CReturn {
 #[derive(Debug, PartialEq)]
 pub struct CFunctionCall {
     pub function_name: String,
-    pub arguments: Vec<CArgument>,
+    pub arguments: Vec<CExpression>,
 }
 
 impl CFunctionCall {
@@ -61,21 +61,12 @@ impl CFunctionCall {
 }
 
 #[derive(Debug, PartialEq)]
-pub enum CArgument {
-    Literal(CLiteral),
-}
-
-#[derive(Debug, PartialEq)]
 pub enum CLiteral {
     String(String),
     Number(String),
 }
 
 impl CLiteral {
-    pub fn to_argument(self) -> CArgument {
-        CArgument::Literal(self)
-    }
-
     pub fn to_expression(self) -> CExpression {
         CExpression::Literal(self)
     }

@@ -34,18 +34,13 @@ pub struct Return {
 pub struct ProcedureCall {
     pub interface: String,
     pub identifier: String,
-    pub argument_list: Vec<Argument>,
+    pub arguments: Vec<Expression>,
 }
 
 impl ProcedureCall {
     pub fn to_statement(self) -> Statement {
         return Statement::ProcedureCall(self);
     }
-}
-
-#[derive(Debug, PartialEq)]
-pub enum Argument {
-    Literal(Literal),
 }
 
 #[derive(Debug, PartialEq)]
@@ -56,10 +51,6 @@ pub enum Literal {
 }
 
 impl Literal {
-    pub fn to_argument(self) -> Argument {
-        Argument::Literal(self)
-    }
-
     pub fn to_expression(self) -> Expression {
         Expression::Literal(self)
     }

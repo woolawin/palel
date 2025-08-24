@@ -2,9 +2,9 @@ use pest::Parser;
 use pest::iterators::Pair;
 use pest_derive::Parser;
 
+use crate::build_task::SrcFile;
 use crate::compilation_error::{CompilationError, FailedToParseSrcFile};
 use crate::palel::*;
-use crate::build_task::SrcFile;
 
 #[derive(Parser)]
 #[grammar = "grammar.pest"]
@@ -74,7 +74,7 @@ fn parse_procedure_call(rule: Pair<'_, Rule>) -> ProcedureCall {
     let mut procedure_call = ProcedureCall {
         interface: "".to_string(),
         identifier: "".to_string(),
-        argument_list: Vec::new(),
+        arguments: Vec::new(),
     };
     for inner in rule.into_inner() {
         match inner.as_rule() {
@@ -85,7 +85,7 @@ fn parse_procedure_call(rule: Pair<'_, Rule>) -> ProcedureCall {
                 procedure_call.identifier = get_identifier(inner);
             }
             Rule::argument_list => {
-                procedure_call.argument_list = parse_argument_list(inner);
+                procedure_call.arguments= parse_argument_list(inner);
             }
             _ => {}
         }
@@ -105,17 +105,17 @@ fn get_identifier(rule: Pair<'_, Rule>) -> String {
     return "".to_string();
 }
 
-fn parse_argument_list(rule: Pair<'_, Rule>) -> Vec<Argument> {
-    let mut arguments: Vec<Argument> = Vec::new();
+fn parse_argument_list(rule: Pair<'_, Rule>) -> Vec<Expression> {
+    let mut expressions: Vec<Expression> = Vec::new();
     for inner in rule.into_inner() {
         match inner.as_rule() {
             Rule::string => {
-                arguments.push(Literal::String(get_string(inner)).to_argument());
+                expressions.push(Literal::String(get_string(inner)).to_expression());
             }
             _ => {}
         }
     }
-    arguments
+    expressions
 }
 
 fn get_string(rule: Pair<'_, Rule>) -> String {
@@ -157,7 +157,7 @@ mod tests {
                         ProcedureCall {
                             interface: "debug".to_string(),
                             identifier: "print".to_string(),
-                            argument_list: Vec::new(),
+                            arguments: Vec::new(),
                         }
                         .to_statement(),
                     ],
@@ -182,8 +182,8 @@ mod tests {
                         ProcedureCall {
                             interface: "debug".to_string(),
                             identifier: "print".to_string(),
-                            argument_list: vec![
-                                Literal::String("Hello World".to_string()).to_argument(),
+                            arguments: vec![
+                                Literal::String("Hello World".to_string()).to_expression(),
                             ],
                         }
                         .to_statement(),

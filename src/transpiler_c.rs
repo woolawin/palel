@@ -99,24 +99,18 @@ fn transpile_procedure_call(
     }
     let function_call = CFunctionCall {
         function_name: input.identifier.clone(),
-        arguments: transpile_arguments(&input.argument_list),
+        arguments: transpile_expressions(&input.arguments),
     };
 
     Of::Ok((function_call, CSrcPatch::default()))
 }
 
-pub fn transpile_arguments(input: &Vec<Argument>) -> Vec<CArgument> {
-    let mut arguments: Vec<CArgument> = vec![];
+pub fn transpile_expressions(input: &Vec<Expression>) -> Vec<CExpression> {
+    let mut expressions: Vec<CExpression> = vec![];
     for argument in input {
-        arguments.push(transpile_argument(argument));
+        expressions.push(transpile_expression(argument));
     }
-    arguments
-}
-
-fn transpile_argument(input: &Argument) -> CArgument {
-    match input {
-        Argument::Literal(literal) => transpile_literal(&literal).to_argument(),
-    }
+    expressions
 }
 
 fn transpile_expression(input: &Expression) -> CExpression {
@@ -183,8 +177,8 @@ mod tests {
                         ProcedureCall {
                             interface: "debug".to_string(),
                             identifier: "printf".to_string(),
-                            argument_list: vec![
-                                Literal::String("Hello World".to_string()).to_argument(),
+                            arguments: vec![
+                                Literal::String("Hello World".to_string()).to_expression(),
                             ],
                         }
                         .to_statement(),
@@ -208,7 +202,7 @@ mod tests {
                         CFunctionCall {
                             function_name: "printf".to_string(),
                             arguments: vec![
-                                CLiteral::String("Hello World".to_string()).to_argument(),
+                                CLiteral::String("Hello World".to_string()).to_expression(),
                             ],
                         }
                         .to_statement(),
