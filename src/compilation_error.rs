@@ -2,6 +2,7 @@ const NOOP_ERROR: i32 = 1;
 const DISK_ERROR: i32 = 2;
 const PARSE_ERROR: i32 = 3;
 const TRANSPILE_ERROR: i32 = 4;
+const DOWNSTREAM_ERROR: i32 = 5;
 
 pub trait CompilationError {
     fn message(&self) -> String;
@@ -74,5 +75,17 @@ impl CompilationError for FailedToParseSrcFile {
 
     fn exit_code(&self) -> i32 {
         PARSE_ERROR
+    }
+}
+
+pub struct DownstreamCompileFailed {}
+
+impl CompilationError for DownstreamCompileFailed {
+    fn message(&self) -> String {
+        format!("downstream compiler failed")
+    }
+
+    fn exit_code(&self) -> i32 {
+        DOWNSTREAM_ERROR
     }
 }

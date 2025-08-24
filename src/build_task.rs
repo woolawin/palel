@@ -8,6 +8,7 @@ use crate::compilation_error::{
     CompilationError, FailedToReadSrcFile, FailedToWriteToFile, NoSourceFiles,
 };
 use crate::core::Of;
+use crate::downstream_compiler_c::downstream_compile;
 use crate::palel::Src;
 use crate::parser::parse;
 use crate::renderer_c::render;
@@ -102,15 +103,18 @@ fn execute(task: &BuildTask) -> Option<Box<dyn CompilationError>> {
         Of::Ok(tp) => tp,
         Of::Error(err) => return Some(err),
     };
-    write(&task, &result)
+    let output_file = format!("{}/code/main.c", task.dest_dir);
+    if let Some(err) = write(&output_file, &result) {
+        return Some(err);
+    }
+    downstream_compile(&output_file)
 }
 
-fn write(task: &BuildTask, src: &CSrc) -> Option<Box<dyn CompilationError>> {
-    let file_path = format!("{}/code/main.c", task.dest_dir);
+fn write(output_file: &String, src: &CSrc) -> Option<Box<dyn CompilationError>> {
     let err = FailedToWriteToFile {
-        file: file_path.to_string(),
+        file: output_file.to_string(),
     };
-    let path = Path::new(file_path.as_str());
+    let path = Path::new(output_file.as_str());
     if let Some(parent) = path.parent() {
         if let Err(_) = fs::create_dir_all(parent) {
             return Some(Box::new(err));

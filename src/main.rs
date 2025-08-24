@@ -2,6 +2,7 @@ mod build_task;
 mod c;
 mod compilation_error;
 mod core;
+mod downstream_compiler_c;
 mod palel;
 mod parser;
 mod renderer_c;
