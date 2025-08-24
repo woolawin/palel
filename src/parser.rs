@@ -59,15 +59,27 @@ fn parse_do_block(rule: Pair<'_, Rule>) -> DoBlock {
     };
     for inner in rule.into_inner() {
         match inner.as_rule() {
-            Rule::procedure_call => {
-                do_block
-                    .statements
-                    .push(parse_procedure_call(inner).to_statement());
+            Rule::statement => {
+                if let Some(statement) = parse_statement(inner) {
+                    do_block.statements.push(statement);
+                }
             }
             _ => {}
         }
     }
     do_block
+}
+
+fn parse_statement(rule: Pair<'_, Rule>) -> Option<Statement> {
+    for inner in rule.into_inner() {
+        match inner.as_rule() {
+            Rule::procedure_call => {
+                return Some(parse_procedure_call(inner).to_statement());
+            }
+            _ => {}
+        }
+    }
+    None
 }
 
 fn parse_procedure_call(rule: Pair<'_, Rule>) -> ProcedureCall {
@@ -85,7 +97,7 @@ fn parse_procedure_call(rule: Pair<'_, Rule>) -> ProcedureCall {
                 procedure_call.identifier = get_identifier(inner);
             }
             Rule::argument_list => {
-                procedure_call.arguments= parse_argument_list(inner);
+                procedure_call.arguments = parse_argument_list(inner);
             }
             _ => {}
         }
