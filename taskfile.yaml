@@ -1,0 +1,5 @@
+version: 3
+tasks:
+    assemble:
+        - cargo build
+        - cp target/debug/palel ./palel
