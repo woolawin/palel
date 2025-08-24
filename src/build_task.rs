@@ -56,7 +56,7 @@ pub fn create_build_task(config: BuildTaskConfig) -> BuildTask {
     };
 }
 
-pub fn run(task: &mut BuildTask) -> Option<Box<dyn CompilationError>> {
+pub fn run_build_task(task: &mut BuildTask) -> Option<Box<dyn CompilationError>> {
     if let Some(err) = load(task) {
         return Some(err);
     }
