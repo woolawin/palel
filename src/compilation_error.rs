@@ -49,6 +49,20 @@ impl CompilationError for FailedToReadSrcFile {
     }
 }
 
+pub struct FailedToWriteToFile {
+    pub file: String,
+}
+
+impl CompilationError for FailedToWriteToFile {
+    fn message(&self) -> String {
+        format!("failed to write to file '{}'", self.file)
+    }
+
+    fn exit_code(&self) -> i32 {
+        DISK_ERROR
+    }
+}
+
 pub struct FailedToParseSrcFile {
     pub file: String,
 }

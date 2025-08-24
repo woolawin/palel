@@ -1,7 +1,12 @@
+use std::fs::OpenOptions;
+use std::io::Write;
 use std::{fs, path::Path};
 use walkdir::WalkDir;
 
-use crate::compilation_error::{CompilationError, FailedToReadSrcFile, NoSourceFiles};
+use crate::c::CSrc;
+use crate::compilation_error::{
+    CompilationError, FailedToReadSrcFile, FailedToWriteToFile, NoSourceFiles,
+};
 use crate::core::Of;
 use crate::palel::Src;
 use crate::parser::parse;
@@ -97,7 +102,34 @@ fn execute(task: &BuildTask) -> Option<Box<dyn CompilationError>> {
         Of::Ok(tp) => tp,
         Of::Error(err) => return Some(err),
     };
+    write(&task, &result)
+}
 
-    println!("{}", render(&result));
-    return None;
+fn write(task: &BuildTask, src: &CSrc) -> Option<Box<dyn CompilationError>> {
+    let file_path = format!("{}/code/main.c", task.dest_dir);
+    let err = FailedToWriteToFile {
+        file: file_path.to_string(),
+    };
+    let path = Path::new(file_path.as_str());
+    if let Some(parent) = path.parent() {
+        if let Err(_) = fs::create_dir_all(parent) {
+            return Some(Box::new(err));
+        }
+    }
+    let file_open = OpenOptions::new()
+        .write(true)
+        .create(true)
+        .truncate(true)
+        .open(path);
+
+    let mut file = match file_open {
+        Ok(value) => value,
+        Err(_) => return Some(Box::new(err)),
+    };
+
+    if let Err(_) = file.write_all(render(src).as_bytes()) {
+        return Some(Box::new(err));
+    } else {
+        None
+    }
 }
