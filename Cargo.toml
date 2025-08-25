@@ -8,3 +8,6 @@ walkdir = "2"
 pest = "2.8.1"
 pest_derive = "2.8.1"
 clap = { version = "4", features = ["derive"] }
+
+[dev-dependencies]
+pretty_assertions = "1"

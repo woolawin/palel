@@ -39,6 +39,7 @@ fn render_statement(statement: &CStatement) -> String {
     let mut output = match statement {
         CStatement::FunctionCall(function_call) => render_function_call(function_call),
         CStatement::Return(ret) => render_return(ret),
+        _ => panic!("TODO"),
     };
     output.push_str(";\n");
     output

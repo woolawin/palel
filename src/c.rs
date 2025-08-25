@@ -1,3 +1,4 @@
+
 #[derive(Debug, PartialEq)]
 pub struct CSrc {
     pub includes: Vec<CInclude>,
@@ -35,6 +36,7 @@ pub struct CBlock {
 pub enum CStatement {
     FunctionCall(CFunctionCall),
     Return(CReturn),
+    Variable(CVariableDeclaration),
 }
 
 #[derive(Debug, PartialEq)]
@@ -75,4 +77,17 @@ impl CLiteral {
 #[derive(Debug, PartialEq)]
 pub enum CExpression {
     Literal(CLiteral),
+}
+
+#[derive(Debug, PartialEq)]
+pub struct CVariableDeclaration {
+    pub name: String,
+    pub var_type: CType,
+    pub is_pointer: bool,
+}
+
+impl CVariableDeclaration {
+    pub fn to_statement(self) -> CStatement {
+        CStatement::Variable(self)
+    }
 }

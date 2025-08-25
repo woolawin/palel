@@ -80,8 +80,40 @@ fn transpile_statement(input: &Statement, toolkit: &CToolKit) -> Of<(CStatement,
             Of::Error(err) => Of::Error(err),
             Of::Ok((ret, patch)) => Of::Ok((ret.to_statement(), patch)),
         },
-        _ => panic!("TODO"),
+        Statement::Variable(variable_declaration) => {
+            match transpile_variable_declaration(variable_declaration, toolkit) {
+                Of::Error(err) => Of::Error(err),
+                Of::Ok((var, patch)) => Of::Ok((var.to_statement(), patch)),
+            }
+        }
     }
+}
+
+fn transpile_variable_declaration(
+    input: &VariableDeclaration,
+    toolkit: &CToolKit,
+) -> Of<(CVariableDeclaration, CSrcPatch)> {
+    let mut var = CVariableDeclaration {
+        name: input.identifier.clone(),
+        var_type: void_type(),
+        is_pointer: false,
+    };
+
+    if input.memory == MemoryModifier::Ref || input.memory == MemoryModifier::Addr {
+        var.is_pointer = true;
+    }
+
+    if let Some(typ) = &input.value_type {
+        if let Some(builtin) = toolkit.transpile_builtin_type(typ) {
+            var.var_type = builtin;
+        } else {
+            var.var_type = CType {
+                name: typ.identifier.clone(),
+            };
+        }
+    }
+
+    Of::Ok((var, CSrcPatch::default()))
 }
 
 fn transpile_return(input: &Return) -> Of<(CReturn, CSrcPatch)> {
@@ -159,6 +191,7 @@ fn false_literal() -> CLiteral {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use pretty_assertions::assert_eq;
 
     const TOOLKIT: CToolKit = CToolKit {};
 
@@ -207,6 +240,188 @@ mod tests {
                             arguments: vec![
                                 CLiteral::String("Hello World".to_string()).to_expression(),
                             ],
+                        }
+                        .to_statement(),
+                        CReturn {
+                            value: Some(CLiteral::Number("0".to_string()).to_expression()),
+                        }
+                        .to_statement(),
+                    ],
+                },
+            }],
+        };
+
+        assert_eq!(actual, expected)
+    }
+
+    #[test]
+    fn test_transpile_variable_delcarations() {
+        let src = Src {
+            programs: vec![Program {
+                do_block: DoBlock {
+                    statements: vec![
+                        VariableDeclaration {
+                            memory: MemoryModifier::Dim,
+                            identifier: "a".to_string(),
+                            value_type: None,
+                            value: Expression::Literal(Literal::Number("1".to_string())),
+                        }
+                        .to_statement(),
+                        VariableDeclaration {
+                            memory: MemoryModifier::Ref,
+                            identifier: "b".to_string(),
+                            value_type: None,
+                            value: Expression::Literal(Literal::Number("2".to_string())),
+                        }
+                        .to_statement(),
+                        VariableDeclaration {
+                            memory: MemoryModifier::Var,
+                            identifier: "c".to_string(),
+                            value_type: None,
+                            value: Expression::Literal(Literal::Number("3".to_string())),
+                        }
+                        .to_statement(),
+                        VariableDeclaration {
+                            memory: MemoryModifier::Addr,
+                            identifier: "d".to_string(),
+                            value_type: None,
+                            value: Expression::Literal(Literal::Number("4".to_string())),
+                        }
+                        .to_statement(),
+                        VariableDeclaration {
+                            memory: MemoryModifier::Dim,
+                            identifier: "e".to_string(),
+                            value_type: Some(Type {
+                                identifier: "Int32".to_string(),
+                                postfix: TypePostfix::None,
+                            }),
+                            value: Expression::Literal(Literal::Number("-5".to_string())),
+                        }
+                        .to_statement(),
+                        VariableDeclaration {
+                            memory: MemoryModifier::Dim,
+                            identifier: "f".to_string(),
+                            value_type: Some(Type {
+                                identifier: "Float64".to_string(),
+                                postfix: TypePostfix::None,
+                            }),
+                            value: Expression::Literal(Literal::Number("6.2".to_string())),
+                        }
+                        .to_statement(),
+                        VariableDeclaration {
+                            memory: MemoryModifier::Dim,
+                            identifier: "g".to_string(),
+                            value_type: Some(Type {
+                                identifier: "Bool".to_string(),
+                                postfix: TypePostfix::None,
+                            }),
+                            value: Expression::Literal(Literal::Boolean("true".to_string())),
+                        }
+                        .to_statement(),
+                        VariableDeclaration {
+                            memory: MemoryModifier::Dim,
+                            identifier: "my_z_var".to_string(),
+                            value_type: Some(Type {
+                                identifier: "Int64".to_string(),
+                                postfix: TypePostfix::None,
+                            }),
+                            value: Expression::Literal(Literal::Null),
+                        }
+                        .to_statement(),
+                        VariableDeclaration {
+                            memory: MemoryModifier::Dim,
+                            identifier: "maybe_num".to_string(),
+                            value_type: Some(Type {
+                                identifier: "Int32".to_string(),
+                                postfix: TypePostfix::Opt,
+                            }),
+                            value: Expression::Literal(Literal::Null),
+                        }
+                        .to_statement(),
+                    ],
+                },
+            }],
+        };
+        let actual = run(&src);
+        let expected = CSrc {
+            includes: vec![],
+            functions: vec![CFunction {
+                name: "main".to_string(),
+                return_type: CType {
+                    name: "int".to_string(),
+                },
+                block: CBlock {
+                    statements: vec![
+                        CVariableDeclaration {
+                            name: "a".to_string(),
+                            is_pointer: false,
+                            var_type: CType {
+                                name: "void".to_string(),
+                            },
+                        }
+                        .to_statement(),
+                        CVariableDeclaration {
+                            name: "b".to_string(),
+                            is_pointer: true,
+                            var_type: CType {
+                                name: "void".to_string(),
+                            },
+                        }
+                        .to_statement(),
+                        CVariableDeclaration {
+                            name: "c".to_string(),
+                            is_pointer: false,
+                            var_type: CType {
+                                name: "void".to_string(),
+                            },
+                        }
+                        .to_statement(),
+                        CVariableDeclaration {
+                            name: "d".to_string(),
+                            is_pointer: true,
+                            var_type: CType {
+                                name: "void".to_string(),
+                            },
+                        }
+                        .to_statement(),
+                        CVariableDeclaration {
+                            name: "e".to_string(),
+                            is_pointer: false,
+                            var_type: CType {
+                                name: "int".to_string(),
+                            },
+                        }
+                        .to_statement(),
+                        CVariableDeclaration {
+                            name: "f".to_string(),
+                            is_pointer: false,
+                            var_type: CType {
+                                name: "double".to_string(),
+                            },
+                        }
+                        .to_statement(),
+                        CVariableDeclaration {
+                            name: "g".to_string(),
+                            is_pointer: false,
+                            var_type: CType {
+                                name: "int".to_string(),
+                            },
+                        }
+                        .to_statement(),
+                        CVariableDeclaration {
+                            name: "my_z_var".to_string(),
+                            is_pointer: false,
+                            var_type: CType {
+                                name: "long".to_string(),
+                            },
+                        }
+                        .to_statement(),
+                        CVariableDeclaration {
+                            name: "maybe_num".to_string(),
+                            is_pointer: false,
+                            var_type: CType {
+                                name: "int".to_string(),
+                            },
                         }
                         .to_statement(),
                         CReturn {
