@@ -23,6 +23,7 @@ pub struct Program {
 pub enum Statement {
     ProcedureCall(ProcedureCall),
     Return(Return),
+    Variable(VariableDeclaration),
 }
 
 #[derive(Debug, PartialEq)]
@@ -66,4 +67,24 @@ impl Literal {
 #[derive(Debug, PartialEq)]
 pub enum Expression {
     Literal(Literal),
+}
+
+#[derive(Debug, PartialEq)]
+pub enum MemoryModifier {
+    Dim,
+    Var,
+    Ref,
+    Addr,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct VariableDeclaration {
+    pub memory: MemoryModifier,
+    pub identifier: String,
+}
+
+impl VariableDeclaration {
+    pub fn to_statement(self) -> Statement {
+        Statement::Variable(self)
+    }
 }

@@ -13,7 +13,8 @@ struct PalelParser;
 pub fn parse(src: &mut Src, file: &SrcFile) -> Option<Box<dyn CompilationError>> {
     let mut parse = match PalelParser::parse(Rule::src, &file.content) {
         Ok(p) => p,
-        Err(_) => {
+        Err(e) => {
+            println!("{}", e);
             return Some(Box::new(FailedToParseSrcFile {
                 file: file.file.clone(),
             }));
@@ -79,10 +80,33 @@ fn parse_statement(rule: Pair<'_, Rule>) -> Option<Statement> {
             Rule::return_stmt => {
                 return Some(parse_return_statement(inner).to_statement());
             }
+            Rule::variable_statement => {
+                return Some(parse_variable_declaration(inner).to_statement());
+            }
             _ => {}
         }
     }
     None
+}
+
+fn parse_variable_declaration(rule: Pair<'_, Rule>) -> VariableDeclaration {
+    let mut var = VariableDeclaration {
+        memory: MemoryModifier::Var,
+        identifier: "".to_string(),
+    };
+    for inner in rule.into_inner() {
+        match inner.as_rule() {
+            Rule::memory_modifier => {
+                var.memory = get_memory_modifier(inner);
+            }
+            Rule::variable_identifier => {
+                var.identifier = get_identifier(inner);
+            }
+            _ => {}
+        }
+    }
+
+    var
 }
 
 fn parse_return_statement(rule: Pair<'_, Rule>) -> Return {
@@ -131,6 +155,15 @@ fn get_identifier(rule: Pair<'_, Rule>) -> String {
         }
     }
     return "".to_string();
+}
+
+fn get_memory_modifier(rule: Pair<'_, Rule>) -> MemoryModifier {
+    match rule.as_str() {
+        "dim" => MemoryModifier::Dim,
+        "ref" => MemoryModifier::Ref,
+        "addr" => MemoryModifier::Addr,
+        _ => MemoryModifier::Var,
+    }
 }
 
 fn parse_argument_list(rule: Pair<'_, Rule>) -> Vec<Expression> {
@@ -243,5 +276,48 @@ mod tests {
             }],
         };
         assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn test_variable_declarations() {
+        let input = r#"
+        program do
+           dim a
+           ref b
+           var c
+           addr d
+        end
+        "#;
+
+        let actual = run(&input);
+        let expected = Src {
+            programs: vec![Program {
+                do_block: DoBlock {
+                    statements: vec![
+                        VariableDeclaration {
+                            memory: MemoryModifier::Dim,
+                            identifier: "a".to_string(),
+                        }
+                        .to_statement(),
+                        VariableDeclaration {
+                            memory: MemoryModifier::Ref,
+                            identifier: "b".to_string(),
+                        }
+                        .to_statement(),
+                        VariableDeclaration {
+                            memory: MemoryModifier::Var,
+                            identifier: "c".to_string(),
+                        }
+                        .to_statement(),
+                        VariableDeclaration {
+                            memory: MemoryModifier::Addr,
+                            identifier: "d".to_string(),
+                        }
+                        .to_statement(),
+                    ],
+                },
+            }],
+        };
+        assert_eq!(actual, expected)
     }
 }

@@ -1,8 +1,10 @@
-WS = _{ " " | "\t" | NL }
-NL = _{ "\n" | "\r\n" }
+WS   = _{ " " | "\t" }
+NL   = _{ "\n" | "\r\n" }
+WSNL = _{ WS | NL }
 
 procedure_identifier =  { identifier }
 interface_identifier =  { identifier }
+variable_identifier  =  { identifier }
 identifier           = @{ (ASCII_ALPHA_LOWER) ~ (ASCII_ALPHANUMERIC | "_")* }
 type_name            = @{ (ASCII_ALPHA_UPPER) ~ (ASCII_ALPHANUMERIC)+ }
 
@@ -15,11 +17,11 @@ number        = @{ "-"? ~ (ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT* | "." ~ ASCII_DIGIT
 boolean       =  { "true" | "false" }
 null          =  { "null" }
 
-src                = { WS* ~ program ~ WS* ~ EOI }
+src                = { WSNL* ~ program ~ WSNL* ~ EOI }
 program            = { "program" ~ WS* ~ do_block }
-do_block           = { "do" ~ WS* ~ statement* ~ WS* ~ "end" }
+do_block           = { "do" ~ WS* ~ NL ~ (WS* ~ statement ~ WS* ~ NL)* ~ WS* ~ "end" }
 statement          = { procedure_call | return_stmt | variable_statement }
 procedure_call     = { (interface_identifier ~ ":")? ~ procedure_identifier ~ "(" ~ WS* ~ argument_list? ~ WS* ~ ")" }
 return_stmt        = { "return" ~ expression? }
-variable_statement = { memory_modifier ~ identifier ~ (":" ~ type_name)? ~ (("=" | "->") ~ expression) }
+variable_statement = { memory_modifier ~ WS+ ~ variable_identifier ~ WS* ~ (":" ~ type_name)? ~ (("=" | "->") ~ expression)? }
 memory_modifier    = { "dim" | "ref" | "var" | "addr" }

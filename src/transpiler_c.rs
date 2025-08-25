@@ -80,6 +80,7 @@ fn transpile_statement(input: &Statement, toolkit: &CToolKit) -> Of<(CStatement,
             Of::Error(err) => Of::Error(err),
             Of::Ok((ret, patch)) => Of::Ok((ret.to_statement(), patch)),
         },
+        _ => panic!("TODO"),
     }
 }
 
