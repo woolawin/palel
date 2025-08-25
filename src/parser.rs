@@ -93,6 +93,7 @@ fn parse_variable_declaration(rule: Pair<'_, Rule>) -> Option<VariableDeclaratio
     let mut var = VariableDeclaration {
         memory: MemoryModifier::Var,
         identifier: "".to_string(),
+        value_type: None,
         value: Expression::Literal(Literal::Null),
     };
     for inner in rule.into_inner() {
@@ -102,6 +103,9 @@ fn parse_variable_declaration(rule: Pair<'_, Rule>) -> Option<VariableDeclaratio
             }
             Rule::variable_identifier => {
                 var.identifier = get_identifier(inner);
+            }
+            Rule::type_spec => {
+                var.value_type = Some(parse_type_spec(inner));
             }
             Rule::expression => {
                 match parse_expression(inner) {
@@ -166,6 +170,21 @@ fn get_identifier(rule: Pair<'_, Rule>) -> String {
         }
     }
     return "".to_string();
+}
+
+fn parse_type_spec(rule: Pair<'_, Rule>) -> Type {
+    let mut typ = Type {
+        identifier: "".to_string(),
+    };
+    for inner in rule.into_inner() {
+        match inner.as_rule() {
+            Rule::type_name => {
+                typ.identifier = inner.as_str().to_string();
+            }
+            _ => {}
+        }
+    }
+    return typ;
 }
 
 fn get_memory_modifier(rule: Pair<'_, Rule>) -> MemoryModifier {
@@ -301,8 +320,19 @@ mod tests {
            ref b = 2
            var c = 3
            addr d = 4
-        end
-        "#;
+           dim e Int32 = 5
+           dim f Float64 = 6.2
+           dim g Bool = true
+
+           insert_space_here
+           insert_space_here
+
+           dim my_z_var Int64 = null
+
+           dim maybe_num Int32? = null
+       end
+        "#
+        .replace("insert_space_here", "   ");
 
         let actual = run(&input);
         let expected = Src {
@@ -312,25 +342,65 @@ mod tests {
                         VariableDeclaration {
                             memory: MemoryModifier::Dim,
                             identifier: "a".to_string(),
+                            value_type: None,
                             value: Expression::Literal(Literal::Number("1".to_string())),
                         }
                         .to_statement(),
                         VariableDeclaration {
                             memory: MemoryModifier::Ref,
                             identifier: "b".to_string(),
+                            value_type: None,
                             value: Expression::Literal(Literal::Number("2".to_string())),
                         }
                         .to_statement(),
                         VariableDeclaration {
                             memory: MemoryModifier::Var,
                             identifier: "c".to_string(),
+                            value_type: None,
                             value: Expression::Literal(Literal::Number("3".to_string())),
                         }
                         .to_statement(),
                         VariableDeclaration {
                             memory: MemoryModifier::Addr,
                             identifier: "d".to_string(),
+                            value_type: None,
                             value: Expression::Literal(Literal::Number("4".to_string())),
+                        }
+                        .to_statement(),
+                        VariableDeclaration {
+                            memory: MemoryModifier::Dim,
+                            identifier: "e".to_string(),
+                            value_type: Some(Type {
+                                identifier: "Int32".to_string(),
+                            }),
+                            value: Expression::Literal(Literal::Number("5".to_string())),
+                        }
+                        .to_statement(),
+                        VariableDeclaration {
+                            memory: MemoryModifier::Dim,
+                            identifier: "f".to_string(),
+                            value_type: Some(Type {
+                                identifier: "Float64".to_string(),
+                            }),
+                            value: Expression::Literal(Literal::Number("6.2".to_string())),
+                        }
+                        .to_statement(),
+                        VariableDeclaration {
+                            memory: MemoryModifier::Dim,
+                            identifier: "g".to_string(),
+                            value_type: Some(Type {
+                                identifier: "Bool".to_string(),
+                            }),
+                            value: Expression::Literal(Literal::Boolean("true".to_string())),
+                        }
+                        .to_statement(),
+                        VariableDeclaration {
+                            memory: MemoryModifier::Dim,
+                            identifier: "my_z_var".to_string(),
+                            value_type: Some(Type {
+                                identifier: "Int64".to_string(),
+                            }),
+                            value: Expression::Literal(Literal::Null),
                         }
                         .to_statement(),
                     ],

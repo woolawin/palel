@@ -6,7 +6,7 @@ procedure_identifier =  { identifier }
 interface_identifier =  { identifier }
 variable_identifier  =  { identifier }
 identifier           = @{ (ASCII_ALPHA_LOWER) ~ (ASCII_ALPHANUMERIC | "_")* }
-// type_name            = @{ (ASCII_ALPHA_UPPER) ~ (ASCII_ALPHANUMERIC)+ }
+type_name            = @{ (ASCII_ALPHA_UPPER) ~ (ASCII_ALPHANUMERIC)+ }
 
 argument_list =  { expression ~ (WS* ~ "," ~ WS* ~ expression)* }
 expression    =  { literal }
@@ -19,9 +19,11 @@ null          =  { "null" }
 
 src                = { WSNL* ~ program ~ WSNL* ~ EOI }
 program            = { "program" ~ WS* ~ do_block }
-do_block           = { "do" ~ WS* ~ NL ~ (WS* ~ statement ~ WS* ~ NL)* ~ WS* ~ "end" }
+do_block           = { "do" ~ WS* ~ NL ~ (WS* ~ statement ~ WS* ~ NL ~ (WSNL*))* ~ WS* ~ "end" }
 statement          = { procedure_call | return_stmt | variable_statement }
 procedure_call     = { (interface_identifier ~ ":")? ~ procedure_identifier ~ "(" ~ WS* ~ argument_list? ~ WS* ~ ")" }
 return_stmt        = { "return" ~ expression? }
-variable_statement = { memory_modifier ~ WS+ ~ variable_identifier ~ WS+ ~ "=" ~ WS+ ~ expression }
+variable_statement = { memory_modifier ~ WS+ ~ variable_identifier ~ WS+ ~ (type_spec ~ WS+)? ~ "=" ~ WS+ ~ expression }
 memory_modifier    = { "dim" | "ref" | "var" | "addr" }
+type_spec          = { type_name ~ opt_or_err? }
+opt_or_err         = { "?" | "!" }

@@ -81,6 +81,7 @@ pub enum MemoryModifier {
 pub struct VariableDeclaration {
     pub memory: MemoryModifier,
     pub identifier: String,
+    pub value_type: Option<Type>,
     pub value: Expression,
 }
 
@@ -88,4 +89,9 @@ impl VariableDeclaration {
     pub fn to_statement(self) -> Statement {
         Statement::Variable(self)
     }
+}
+
+#[derive(Debug, PartialEq)]
+pub struct Type {
+    pub identifier: String,
 }
