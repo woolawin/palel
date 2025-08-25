@@ -25,5 +25,5 @@ procedure_call     = { (interface_identifier ~ ":")? ~ procedure_identifier ~ "(
 return_stmt        = { "return" ~ expression? }
 variable_statement = { memory_modifier ~ WS+ ~ variable_identifier ~ WS+ ~ (type_spec ~ WS+)? ~ "=" ~ WS+ ~ expression }
 memory_modifier    = { "dim" | "ref" | "var" | "addr" }
-type_spec          = { type_name ~ opt_or_err? }
-opt_or_err         = { "?" | "!" }
+type_spec          = { type_name ~ type_postfix? }
+type_postfix       = { "?" | "!" }

@@ -175,11 +175,23 @@ fn get_identifier(rule: Pair<'_, Rule>) -> String {
 fn parse_type_spec(rule: Pair<'_, Rule>) -> Type {
     let mut typ = Type {
         identifier: "".to_string(),
+        postfix: TypePostfix::None,
     };
     for inner in rule.into_inner() {
         match inner.as_rule() {
             Rule::type_name => {
                 typ.identifier = inner.as_str().to_string();
+            }
+            Rule::type_postfix => {
+                match inner.as_str() {
+                    "?" => {
+                        typ.postfix = TypePostfix::Opt;
+                    }
+                    "!" => {
+                        typ.postfix = TypePostfix::Err;
+                    }
+                    _ => {}
+                };
             }
             _ => {}
         }
@@ -320,7 +332,7 @@ mod tests {
            ref b = 2
            var c = 3
            addr d = 4
-           dim e Int32 = 5
+           dim e Int32 = -5
            dim f Float64 = 6.2
            dim g Bool = true
 
@@ -372,8 +384,9 @@ mod tests {
                             identifier: "e".to_string(),
                             value_type: Some(Type {
                                 identifier: "Int32".to_string(),
+                                postfix: TypePostfix::None,
                             }),
-                            value: Expression::Literal(Literal::Number("5".to_string())),
+                            value: Expression::Literal(Literal::Number("-5".to_string())),
                         }
                         .to_statement(),
                         VariableDeclaration {
@@ -381,6 +394,7 @@ mod tests {
                             identifier: "f".to_string(),
                             value_type: Some(Type {
                                 identifier: "Float64".to_string(),
+                                postfix: TypePostfix::None,
                             }),
                             value: Expression::Literal(Literal::Number("6.2".to_string())),
                         }
@@ -390,6 +404,7 @@ mod tests {
                             identifier: "g".to_string(),
                             value_type: Some(Type {
                                 identifier: "Bool".to_string(),
+                                postfix: TypePostfix::None,
                             }),
                             value: Expression::Literal(Literal::Boolean("true".to_string())),
                         }
@@ -399,6 +414,17 @@ mod tests {
                             identifier: "my_z_var".to_string(),
                             value_type: Some(Type {
                                 identifier: "Int64".to_string(),
+                                postfix: TypePostfix::None,
+                            }),
+                            value: Expression::Literal(Literal::Null),
+                        }
+                        .to_statement(),
+                        VariableDeclaration {
+                            memory: MemoryModifier::Dim,
+                            identifier: "maybe_num".to_string(),
+                            value_type: Some(Type {
+                                identifier: "Int32".to_string(),
+                                postfix: TypePostfix::Opt,
                             }),
                             value: Expression::Literal(Literal::Null),
                         }

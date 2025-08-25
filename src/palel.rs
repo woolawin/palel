@@ -92,6 +92,14 @@ impl VariableDeclaration {
 }
 
 #[derive(Debug, PartialEq)]
+pub enum TypePostfix {
+    Opt,
+    Err,
+    None,
+}
+
+#[derive(Debug, PartialEq)]
 pub struct Type {
     pub identifier: String,
+    pub postfix: TypePostfix,
 }
