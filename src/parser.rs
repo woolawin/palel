@@ -81,7 +81,7 @@ fn parse_statement(rule: Pair<'_, Rule>) -> Option<Statement> {
                 return Some(parse_return_statement(inner).to_statement());
             }
             Rule::variable_statement => {
-                return Some(parse_variable_declaration(inner).to_statement());
+                return parse_variable_declaration(inner).map(|vd| vd.to_statement());
             }
             _ => {}
         }
@@ -89,10 +89,11 @@ fn parse_statement(rule: Pair<'_, Rule>) -> Option<Statement> {
     None
 }
 
-fn parse_variable_declaration(rule: Pair<'_, Rule>) -> VariableDeclaration {
+fn parse_variable_declaration(rule: Pair<'_, Rule>) -> Option<VariableDeclaration> {
     let mut var = VariableDeclaration {
         memory: MemoryModifier::Var,
         identifier: "".to_string(),
+        value: Expression::Literal(Literal::Null),
     };
     for inner in rule.into_inner() {
         match inner.as_rule() {
@@ -102,11 +103,21 @@ fn parse_variable_declaration(rule: Pair<'_, Rule>) -> VariableDeclaration {
             Rule::variable_identifier => {
                 var.identifier = get_identifier(inner);
             }
+            Rule::expression => {
+                match parse_expression(inner) {
+                    Some(expr) => {
+                        var.value = expr;
+                    }
+                    None => {
+                        return None;
+                    }
+                };
+            }
             _ => {}
         }
     }
 
-    var
+    Some(var)
 }
 
 fn parse_return_statement(rule: Pair<'_, Rule>) -> Return {
@@ -188,10 +199,10 @@ fn parse_expression(rule: Pair<'_, Rule>) -> Option<Expression> {
                 return Some(Literal::String(get_string(inner)).to_expression());
             }
             Rule::number => {
-                return Some(Literal::Number(get_string(inner)).to_expression());
+                return Some(Literal::Number(get_value(inner)).to_expression());
             }
             Rule::boolean => {
-                return Some(Literal::Boolean(get_string(inner)).to_expression());
+                return Some(Literal::Boolean(get_value(inner)).to_expression());
             }
             Rule::null => {
                 return Some(Literal::Null.to_expression());
@@ -205,6 +216,10 @@ fn parse_expression(rule: Pair<'_, Rule>) -> Option<Expression> {
 fn get_string(rule: Pair<'_, Rule>) -> String {
     let val = rule.as_str();
     val[1..val.len() - 1].to_string()
+}
+
+fn get_value(rule: Pair<'_, Rule>) -> String {
+    rule.as_str().to_string()
 }
 
 #[cfg(test)]
@@ -282,10 +297,10 @@ mod tests {
     fn test_variable_declarations() {
         let input = r#"
         program do
-           dim a
-           ref b
-           var c
-           addr d
+           dim a = 1
+           ref b = 2
+           var c = 3
+           addr d = 4
         end
         "#;
 
@@ -297,21 +312,25 @@ mod tests {
                         VariableDeclaration {
                             memory: MemoryModifier::Dim,
                             identifier: "a".to_string(),
+                            value: Expression::Literal(Literal::Number("1".to_string())),
                         }
                         .to_statement(),
                         VariableDeclaration {
                             memory: MemoryModifier::Ref,
                             identifier: "b".to_string(),
+                            value: Expression::Literal(Literal::Number("2".to_string())),
                         }
                         .to_statement(),
                         VariableDeclaration {
                             memory: MemoryModifier::Var,
                             identifier: "c".to_string(),
+                            value: Expression::Literal(Literal::Number("3".to_string())),
                         }
                         .to_statement(),
                         VariableDeclaration {
                             memory: MemoryModifier::Addr,
                             identifier: "d".to_string(),
+                            value: Expression::Literal(Literal::Number("4".to_string())),
                         }
                         .to_statement(),
                     ],

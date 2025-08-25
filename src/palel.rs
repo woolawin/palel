@@ -81,6 +81,7 @@ pub enum MemoryModifier {
 pub struct VariableDeclaration {
     pub memory: MemoryModifier,
     pub identifier: String,
+    pub value: Expression,
 }
 
 impl VariableDeclaration {
