@@ -97,6 +97,7 @@ fn transpile_variable_declaration(
         name: input.identifier.clone(),
         var_type: void_type(),
         is_pointer: false,
+        value: transpile_expression(&input.value),
     };
 
     if input.memory == MemoryModifier::Ref || input.memory == MemoryModifier::Addr {
@@ -371,6 +372,7 @@ mod tests {
                             var_type: CType {
                                 name: "int".to_string(),
                             },
+                            value: CLiteral::Number("1".to_string()).to_expression(),
                         }
                         .to_statement(),
                         CVariableDeclaration {
@@ -379,6 +381,7 @@ mod tests {
                             var_type: CType {
                                 name: "int".to_string(),
                             },
+                            value: CLiteral::Number("2".to_string()).to_expression(),
                         }
                         .to_statement(),
                         CVariableDeclaration {
@@ -387,6 +390,7 @@ mod tests {
                             var_type: CType {
                                 name: "int".to_string(),
                             },
+                            value: CLiteral::Number("3".to_string()).to_expression(),
                         }
                         .to_statement(),
                         CVariableDeclaration {
@@ -395,6 +399,7 @@ mod tests {
                             var_type: CType {
                                 name: "void".to_string(),
                             },
+                            value: CLiteral::Number("4".to_string()).to_expression(),
                         }
                         .to_statement(),
                         CVariableDeclaration {
@@ -403,6 +408,7 @@ mod tests {
                             var_type: CType {
                                 name: "int".to_string(),
                             },
+                            value: CLiteral::Number("-5".to_string()).to_expression(),
                         }
                         .to_statement(),
                         CVariableDeclaration {
@@ -411,6 +417,7 @@ mod tests {
                             var_type: CType {
                                 name: "double".to_string(),
                             },
+                            value: CLiteral::Number("6.2".to_string()).to_expression(),
                         }
                         .to_statement(),
                         CVariableDeclaration {
@@ -419,6 +426,7 @@ mod tests {
                             var_type: CType {
                                 name: "int".to_string(),
                             },
+                            value: CLiteral::Number("0".to_string()).to_expression(),
                         }
                         .to_statement(),
                         CVariableDeclaration {
@@ -427,6 +435,7 @@ mod tests {
                             var_type: CType {
                                 name: "double".to_string(),
                             },
+                            value: CLiteral::Number("3.14".to_string()).to_expression(),
                         }
                         .to_statement(),
                         CVariableDeclaration {
@@ -435,6 +444,7 @@ mod tests {
                             var_type: CType {
                                 name: "long".to_string(),
                             },
+                            value: CLiteral::Number("0".to_string()).to_expression(),
                         }
                         .to_statement(),
                         CVariableDeclaration {
@@ -443,6 +453,7 @@ mod tests {
                             var_type: CType {
                                 name: "int".to_string(),
                             },
+                            value: CLiteral::Number("0".to_string()).to_expression(),
                         }
                         .to_statement(),
                         CReturn {

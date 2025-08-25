@@ -1,4 +1,3 @@
-
 #[derive(Debug, PartialEq)]
 pub struct CSrc {
     pub includes: Vec<CInclude>,
@@ -84,6 +83,7 @@ pub struct CVariableDeclaration {
     pub name: String,
     pub var_type: CType,
     pub is_pointer: bool,
+    pub value: CExpression,
 }
 
 impl CVariableDeclaration {
