@@ -103,6 +103,12 @@ fn transpile_variable_declaration(
         var.is_pointer = true;
     }
 
+    if input.memory != MemoryModifier::Addr && input.value_type == None {
+        if let Some(typ) = toolkit.infer_type(&input.value) {
+            var.var_type = typ
+        }
+    }
+
     if let Some(typ) = &input.value_type {
         if let Some(builtin) = toolkit.transpile_builtin_type(typ) {
             var.var_type = builtin;
@@ -320,6 +326,13 @@ mod tests {
                         .to_statement(),
                         VariableDeclaration {
                             memory: MemoryModifier::Dim,
+                            identifier: "h".to_string(),
+                            value_type: None,
+                            value: Expression::Literal(Literal::Number("3.14".to_string())),
+                        }
+                        .to_statement(),
+                        VariableDeclaration {
+                            memory: MemoryModifier::Dim,
                             identifier: "my_z_var".to_string(),
                             value_type: Some(Type {
                                 identifier: "Int64".to_string(),
@@ -356,7 +369,7 @@ mod tests {
                             name: "a".to_string(),
                             is_pointer: false,
                             var_type: CType {
-                                name: "void".to_string(),
+                                name: "int".to_string(),
                             },
                         }
                         .to_statement(),
@@ -364,7 +377,7 @@ mod tests {
                             name: "b".to_string(),
                             is_pointer: true,
                             var_type: CType {
-                                name: "void".to_string(),
+                                name: "int".to_string(),
                             },
                         }
                         .to_statement(),
@@ -372,7 +385,7 @@ mod tests {
                             name: "c".to_string(),
                             is_pointer: false,
                             var_type: CType {
-                                name: "void".to_string(),
+                                name: "int".to_string(),
                             },
                         }
                         .to_statement(),
@@ -405,6 +418,14 @@ mod tests {
                             is_pointer: false,
                             var_type: CType {
                                 name: "int".to_string(),
+                            },
+                        }
+                        .to_statement(),
+                        CVariableDeclaration {
+                            name: "h".to_string(),
+                            is_pointer: false,
+                            var_type: CType {
+                                name: "double".to_string(),
                             },
                         }
                         .to_statement(),

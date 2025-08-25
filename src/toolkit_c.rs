@@ -1,7 +1,7 @@
 use crate::c::{CFunctionCall, CInclude, CSrcPatch, CType};
 use crate::compilation_error::UnknownInterface;
 use crate::core::Of;
-use crate::palel::{ProcedureCall, Type};
+use crate::palel::{Expression, Literal, ProcedureCall, Type};
 use crate::transpiler_c::transpile_expressions;
 
 pub struct CToolKit {}
@@ -31,24 +31,55 @@ impl CToolKit {
         Of::Ok((function_call, patch))
     }
 
-    pub fn transpile_builtin_type(&self, input: &Type) -> Option<CType> {
-        match input.identifier.as_str() {
-            "Int32" => Some(CType {
-                name: "int".to_string(),
-            }),
-            "Int64" => Some(CType {
-                name: "long".to_string(),
-            }),
-            "Float32" => Some(CType {
-                name: "float".to_string(),
-            }),
-            "Float64" => Some(CType {
-                name: "double".to_string(),
-            }),
-            "Bool" => Some(CType {
-                name: "int".to_string(),
-            }),
+    pub fn infer_type(&self, expr: &Expression) -> Option<CType> {
+        match expr {
+            Expression::Literal(literal) => match literal {
+                Literal::Boolean(_) => Some(int_type()),
+                Literal::Number(value) => {
+                    if value.contains(".") {
+                        Some(double_type())
+                    } else {
+                        Some(int_type())
+                    }
+                }
+                _ => None,
+            },
             _ => None,
         }
+    }
+
+    pub fn transpile_builtin_type(&self, input: &Type) -> Option<CType> {
+        match input.identifier.as_str() {
+            "Int32" => Some(int_type()),
+            "Int64" => Some(long_type()),
+            "Float32" => Some(float_type()),
+            "Float64" => Some(double_type()),
+            "Bool" => Some(int_type()),
+            _ => None,
+        }
+    }
+}
+
+fn int_type() -> CType {
+    CType {
+        name: "int".to_string(),
+    }
+}
+
+fn long_type() -> CType {
+    CType {
+        name: "long".to_string(),
+    }
+}
+
+fn float_type() -> CType {
+    CType {
+        name: "float".to_string(),
+    }
+}
+
+fn double_type() -> CType {
+    CType {
+        name: "double".to_string(),
     }
 }
