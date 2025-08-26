@@ -233,7 +233,7 @@ fn parse_expression(rule: Pair<'_, Rule>) -> Option<Expression> {
                 return Some(Literal::Number(get_value(inner)).to_expression());
             }
             Rule::boolean => {
-                return Some(Literal::Boolean(get_value(inner)).to_expression());
+                return Some(Literal::Boolean(get_bool_value(inner)).to_expression());
             }
             Rule::null => {
                 return Some(Literal::Null.to_expression());
@@ -253,9 +253,14 @@ fn get_value(rule: Pair<'_, Rule>) -> String {
     rule.as_str().to_string()
 }
 
+fn get_bool_value(rule: Pair<'_, Rule>) -> bool {
+    rule.as_str() == "true"
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use pretty_assertions::assert_eq;
 
     fn run(input: &str) -> Src {
         let file = SrcFile {
@@ -406,7 +411,7 @@ mod tests {
                                 identifier: "Bool".to_string(),
                                 postfix: TypePostfix::None,
                             }),
-                            value: Expression::Literal(Literal::Boolean("true".to_string())),
+                            value: Expression::Literal(Literal::Boolean(true)),
                         }
                         .to_statement(),
                         VariableDeclaration {

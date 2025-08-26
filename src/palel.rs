@@ -54,7 +54,7 @@ impl ProcedureCall {
 pub enum Literal {
     String(String),
     Number(String),
-    Boolean(String),
+    Boolean(bool),
     Null,
 }
 

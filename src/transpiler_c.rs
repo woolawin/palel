@@ -165,7 +165,7 @@ fn transpile_literal(input: &Literal) -> CLiteral {
         Literal::String(str) => CLiteral::String(str.clone()),
         Literal::Number(num) => CLiteral::Number(num.clone()),
         Literal::Boolean(value) => {
-            if value == "true" {
+            if *value {
                 true_literal()
             } else {
                 false_literal()
@@ -188,11 +188,11 @@ fn int_type() -> CType {
 }
 
 fn true_literal() -> CLiteral {
-    return CLiteral::Number("0".to_string());
+    return CLiteral::Number("1".to_string());
 }
 
 fn false_literal() -> CLiteral {
-    return CLiteral::Number("1".to_string());
+    return CLiteral::Number("0".to_string());
 }
 
 #[cfg(test)]
@@ -322,7 +322,7 @@ mod tests {
                                 identifier: "Bool".to_string(),
                                 postfix: TypePostfix::None,
                             }),
-                            value: Expression::Literal(Literal::Boolean("true".to_string())),
+                            value: Expression::Literal(Literal::Boolean(true)),
                         }
                         .to_statement(),
                         VariableDeclaration {
@@ -426,7 +426,7 @@ mod tests {
                             var_type: CType {
                                 name: "int".to_string(),
                             },
-                            value: CLiteral::Number("0".to_string()).to_expression(),
+                            value: CLiteral::Number("1".to_string()).to_expression(),
                         }
                         .to_statement(),
                         CVariableDeclaration {
