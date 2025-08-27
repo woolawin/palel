@@ -110,27 +110,6 @@ fn transpile_variable_declaration(
         },
         value: transpile_expression(&input.value),
     };
-
-    /*
-    if input.memory != MemoryModifier::Addr && input.value_type == None {
-        if let Some(typ) = toolkit.infer_type(&input.value) {
-            var.var_type = typ
-        }
-    }
-
-
-
-    if let Some(typ) = &input.value_type {
-        if let Some(builtin) = toolkit.transpile_builtin_type(typ) {
-            var.var_type = builtin;
-        } else {
-            var.var_type = CType {
-                name: typ.identifier.clone(),
-            };
-        }
-    }
-    */
-
     Of::Ok((var, CSrcPatch::default()))
 }
 

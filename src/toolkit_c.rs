@@ -4,7 +4,7 @@ use crate::c::{
 };
 use crate::compilation_error::UnknownInterface;
 use crate::core::Of;
-use crate::palel::{Expression, Literal, ProcedureCall, Type, VariableType};
+use crate::palel::{ProcedureCall, VariableType};
 use crate::transpiler_c::transpile_expressions;
 
 pub struct CToolKit {}
@@ -57,34 +57,6 @@ impl CToolKit {
             VariableType::Addr(_) => Some(void_type(true)),
             VariableType::Ref(reftyp) => map_type(&reftyp.identifier).map(as_pointer),
             VariableType::Dim(dimtype) => map_type(&dimtype.identifier),
-        }
-    }
-
-    pub fn infer_type(&self, expr: &Expression) -> Option<CType> {
-        match expr {
-            Expression::Literal(literal) => match literal {
-                Literal::Boolean(_) => Some(int_type()),
-                Literal::Number(value) => {
-                    if value.contains(".") {
-                        Some(double_type())
-                    } else {
-                        Some(int_type())
-                    }
-                }
-                _ => None,
-            },
-            _ => None,
-        }
-    }
-
-    pub fn transpile_builtin_type(&self, input: &Type) -> Option<CType> {
-        match input.identifier.as_str() {
-            "Int32" => Some(int_type()),
-            "Int64" => Some(long_type()),
-            "Float32" => Some(float_type()),
-            "Float64" => Some(double_type()),
-            "Bool" => Some(int_type()),
-            _ => None,
         }
     }
 }
