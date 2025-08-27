@@ -36,10 +36,14 @@ pub fn type_of_expression(expr: &Expression) -> Option<Type> {
     }
 }
 
-pub fn is_valid_type_assignment(memory: MemoryModifier, to: Type, from: Type) -> bool {
-    match memory {
-        MemoryModifier::Dim | MemoryModifier::Var => can_implicitly_convert(to, from),
-        MemoryModifier::Addr | MemoryModifier::Ref => return false,
+pub fn is_valid_expression_assignment(to: VariableType, from: Type) -> bool {
+    match to {
+        VariableType::Addr(typ) => match typ {
+            None => true,
+            Some(addrtyp) => can_implicitly_convert(addrtyp, from),
+        },
+        VariableType::Dim(dimtype) => can_implicitly_convert(dimtype, from),
+        VariableType::Ref(reftype) => can_implicitly_convert(reftype, from),
     }
 }
 

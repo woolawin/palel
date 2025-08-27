@@ -4,7 +4,9 @@ use crate::core::Of;
 use crate::palel::*;
 use crate::toolkit_c::CToolKit;
 use crate::transpiler_c_patch::{merge_patch, patch_src};
-use crate::type_checking::determine_variable_type;
+use crate::type_checking::{
+    determine_variable_type, is_valid_expression_assignment, type_of_expression,
+};
 
 pub fn transpile(input: &Src, toolkit: &CToolKit) -> Of<CSrc> {
     let mut src = CSrc {
@@ -102,13 +104,21 @@ fn transpile_variable_declaration(
             None => return Of::Error(Box::new(VariableTypeUndefined {})),
         };
 
-    let mut var = CVariableDeclaration {
+    let expression_type = match type_of_expression(&input.value) {
+        Some(t) => t,
+        None => return Of::Error(Box::new(VariableTypeUndefined {})),
+    };
+
+    if !is_valid_expression_assignment(variable_type.clone(), expression_type.clone()) {}
+    let expression = transpile_expression(&input.value);
+
+    let var = CVariableDeclaration {
         name: input.identifier.clone(),
         var_type: match toolkit.transpile_type(&variable_type) {
             Some(t) => t,
             None => return Of::Error(Box::new(CouldNotTranspileType {})),
         },
-        value: transpile_expression(&input.value),
+        value: expression,
     };
     Of::Ok((var, CSrcPatch::default()))
 }
