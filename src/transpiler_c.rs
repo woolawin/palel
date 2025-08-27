@@ -1,8 +1,10 @@
 use crate::c::*;
+use crate::compilation_error::{CouldNotTranspileType, VariableTypeUndefined};
 use crate::core::Of;
 use crate::palel::*;
 use crate::toolkit_c::CToolKit;
 use crate::transpiler_c_patch::{merge_patch, patch_src};
+use crate::type_checking::determine_variable_type;
 
 pub fn transpile(input: &Src, toolkit: &CToolKit) -> Of<CSrc> {
     let mut src = CSrc {
@@ -93,22 +95,30 @@ fn transpile_variable_declaration(
     input: &VariableDeclaration,
     toolkit: &CToolKit,
 ) -> Of<(CVariableDeclaration, CSrcPatch)> {
+    let variable_type: VariableType =
+        match determine_variable_type(input.memory.clone(), input.value_type.clone(), &input.value)
+        {
+            Some(t) => t.clone(),
+            None => return Of::Error(Box::new(VariableTypeUndefined {})),
+        };
+
     let mut var = CVariableDeclaration {
         name: input.identifier.clone(),
-        var_type: void_type(),
-        is_pointer: false,
+        var_type: match toolkit.transpile_type(&variable_type) {
+            Some(t) => t,
+            None => return Of::Error(Box::new(CouldNotTranspileType {})),
+        },
         value: transpile_expression(&input.value),
     };
 
-    if input.memory == MemoryModifier::Ref || input.memory == MemoryModifier::Addr {
-        var.is_pointer = true;
-    }
-
+    /*
     if input.memory != MemoryModifier::Addr && input.value_type == None {
         if let Some(typ) = toolkit.infer_type(&input.value) {
             var.var_type = typ
         }
     }
+
+
 
     if let Some(typ) = &input.value_type {
         if let Some(builtin) = toolkit.transpile_builtin_type(typ) {
@@ -119,6 +129,7 @@ fn transpile_variable_declaration(
             };
         }
     }
+    */
 
     Of::Ok((var, CSrcPatch::default()))
 }
@@ -175,18 +186,6 @@ fn transpile_literal(input: &Literal) -> CLiteral {
     }
 }
 
-fn void_type() -> CType {
-    CType {
-        name: "void".to_string(),
-    }
-}
-
-fn int_type() -> CType {
-    CType {
-        name: "int".to_string(),
-    }
-}
-
 fn true_literal() -> CLiteral {
     return CLiteral::Number("1".to_string());
 }
@@ -239,6 +238,7 @@ mod tests {
                 name: "main".to_string(),
                 return_type: CType {
                     name: "int".to_string(),
+                    is_pointer: false,
                 },
                 block: CBlock {
                     statements: vec![
@@ -373,95 +373,96 @@ mod tests {
                 name: "main".to_string(),
                 return_type: CType {
                     name: "int".to_string(),
+                    is_pointer: false,
                 },
                 block: CBlock {
                     statements: vec![
                         CVariableDeclaration {
                             name: "a".to_string(),
-                            is_pointer: false,
                             var_type: CType {
                                 name: "int".to_string(),
+                                is_pointer: false,
                             },
                             value: CLiteral::Number("1".to_string()).to_expression(),
                         }
                         .to_statement(),
                         CVariableDeclaration {
                             name: "b".to_string(),
-                            is_pointer: true,
                             var_type: CType {
                                 name: "int".to_string(),
+                                is_pointer: true,
                             },
                             value: CLiteral::Number("2".to_string()).to_expression(),
                         }
                         .to_statement(),
                         CVariableDeclaration {
                             name: "c".to_string(),
-                            is_pointer: false,
                             var_type: CType {
                                 name: "int".to_string(),
+                                is_pointer: false,
                             },
                             value: CLiteral::Number("3".to_string()).to_expression(),
                         }
                         .to_statement(),
                         CVariableDeclaration {
                             name: "d".to_string(),
-                            is_pointer: true,
                             var_type: CType {
                                 name: "void".to_string(),
+                                is_pointer: true,
                             },
                             value: CLiteral::Number("4".to_string()).to_expression(),
                         }
                         .to_statement(),
                         CVariableDeclaration {
                             name: "e".to_string(),
-                            is_pointer: false,
                             var_type: CType {
                                 name: "int".to_string(),
+                                is_pointer: false,
                             },
                             value: CLiteral::Number("-5".to_string()).to_expression(),
                         }
                         .to_statement(),
                         CVariableDeclaration {
                             name: "f".to_string(),
-                            is_pointer: false,
                             var_type: CType {
                                 name: "double".to_string(),
+                                is_pointer: false,
                             },
                             value: CLiteral::Number("6.2".to_string()).to_expression(),
                         }
                         .to_statement(),
                         CVariableDeclaration {
                             name: "g".to_string(),
-                            is_pointer: false,
                             var_type: CType {
                                 name: "int".to_string(),
+                                is_pointer: false,
                             },
                             value: CLiteral::Number("1".to_string()).to_expression(),
                         }
                         .to_statement(),
                         CVariableDeclaration {
                             name: "h".to_string(),
-                            is_pointer: false,
                             var_type: CType {
                                 name: "double".to_string(),
+                                is_pointer: false,
                             },
                             value: CLiteral::Number("3.14".to_string()).to_expression(),
                         }
                         .to_statement(),
                         CVariableDeclaration {
                             name: "my_z_var".to_string(),
-                            is_pointer: false,
                             var_type: CType {
                                 name: "long".to_string(),
+                                is_pointer: false,
                             },
                             value: CLiteral::Number("0".to_string()).to_expression(),
                         }
                         .to_statement(),
                         CVariableDeclaration {
                             name: "maybe_num".to_string(),
-                            is_pointer: false,
                             var_type: CType {
                                 name: "int".to_string(),
+                                is_pointer: false,
                             },
                             value: CLiteral::Number("0".to_string()).to_expression(),
                         }

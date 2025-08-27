@@ -89,3 +89,27 @@ impl CompilationError for DownstreamCompileFailed {
         DOWNSTREAM_ERROR
     }
 }
+
+pub struct VariableTypeUndefined {}
+
+impl CompilationError for VariableTypeUndefined {
+    fn message(&self) -> String {
+        format!("could not determine type of variable")
+    }
+
+    fn exit_code(&self) -> i32 {
+        TRANSPILE_ERROR
+    }
+}
+
+pub struct CouldNotTranspileType {}
+
+impl CompilationError for CouldNotTranspileType {
+    fn message(&self) -> String {
+        format!("could not transpile type")
+    }
+
+    fn exit_code(&self) -> i32 {
+        TRANSPILE_ERROR
+    }
+}

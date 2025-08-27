@@ -49,7 +49,7 @@ fn render_variable_declaration(vardec: &CVariableDeclaration) -> String {
     let mut output = String::new();
     output.push_str(&vardec.var_type.name);
     output.push_str(" ");
-    if vardec.is_pointer {
+    if vardec.var_type.is_pointer {
         output.push_str("*");
     }
     output.push_str(&vardec.name);
@@ -123,6 +123,7 @@ mod tests {
                 name: "main".to_string(),
                 return_type: CType {
                     name: "int".to_string(),
+                    is_pointer: false,
                 },
                 block: CBlock {
                     statements: vec![
@@ -163,95 +164,96 @@ mod tests {
                 name: "main".to_string(),
                 return_type: CType {
                     name: "int".to_string(),
+                    is_pointer: false,
                 },
                 block: CBlock {
                     statements: vec![
                         CVariableDeclaration {
                             name: "a".to_string(),
-                            is_pointer: false,
                             var_type: CType {
                                 name: "int".to_string(),
+                                is_pointer: false,
                             },
                             value: CLiteral::Number("1".to_string()).to_expression(),
                         }
                         .to_statement(),
                         CVariableDeclaration {
                             name: "b".to_string(),
-                            is_pointer: true,
                             var_type: CType {
                                 name: "int".to_string(),
+                                is_pointer: true,
                             },
                             value: CLiteral::Number("2".to_string()).to_expression(),
                         }
                         .to_statement(),
                         CVariableDeclaration {
                             name: "c".to_string(),
-                            is_pointer: false,
                             var_type: CType {
                                 name: "int".to_string(),
+                                is_pointer: false,
                             },
                             value: CLiteral::Number("3".to_string()).to_expression(),
                         }
                         .to_statement(),
                         CVariableDeclaration {
                             name: "d".to_string(),
-                            is_pointer: true,
                             var_type: CType {
                                 name: "void".to_string(),
+                                is_pointer: true,
                             },
                             value: CLiteral::Number("4".to_string()).to_expression(),
                         }
                         .to_statement(),
                         CVariableDeclaration {
                             name: "e".to_string(),
-                            is_pointer: false,
                             var_type: CType {
                                 name: "int".to_string(),
+                                is_pointer: false,
                             },
                             value: CLiteral::Number("-5".to_string()).to_expression(),
                         }
                         .to_statement(),
                         CVariableDeclaration {
                             name: "f".to_string(),
-                            is_pointer: false,
                             var_type: CType {
                                 name: "double".to_string(),
+                                is_pointer: false,
                             },
                             value: CLiteral::Number("6.2".to_string()).to_expression(),
                         }
                         .to_statement(),
                         CVariableDeclaration {
                             name: "g".to_string(),
-                            is_pointer: false,
                             var_type: CType {
                                 name: "int".to_string(),
+                                is_pointer: false,
                             },
                             value: CLiteral::Number("0".to_string()).to_expression(),
                         }
                         .to_statement(),
                         CVariableDeclaration {
                             name: "h".to_string(),
-                            is_pointer: false,
                             var_type: CType {
                                 name: "double".to_string(),
+                                is_pointer: false,
                             },
                             value: CLiteral::Number("3.14".to_string()).to_expression(),
                         }
                         .to_statement(),
                         CVariableDeclaration {
                             name: "my_z_var".to_string(),
-                            is_pointer: false,
                             var_type: CType {
                                 name: "long".to_string(),
+                                is_pointer: false,
                             },
                             value: CLiteral::Number("0".to_string()).to_expression(),
                         }
                         .to_statement(),
                         CVariableDeclaration {
                             name: "maybe_num".to_string(),
-                            is_pointer: false,
                             var_type: CType {
                                 name: "int".to_string(),
+                                is_pointer: false,
                             },
                             value: CLiteral::Number("0".to_string()).to_expression(),
                         }

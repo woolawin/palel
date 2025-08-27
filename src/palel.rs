@@ -69,7 +69,7 @@ pub enum Expression {
     Literal(Literal),
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum MemoryModifier {
     Dim,
     Var,
@@ -91,14 +91,14 @@ impl VariableDeclaration {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum TypePostfix {
     Opt,
     Err,
     None,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum TypeFamily {
     Int,
     Float,
@@ -121,12 +121,19 @@ pub fn type_size_of(type_name: &String) -> Option<i32> {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Type {
     pub identifier: String,
     pub postfix: TypePostfix,
     pub family: TypeFamily,
     pub size: Option<i32>,
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum VariableType {
+    Addr(Option<Type>),
+    Ref(Type),
+    Dim(Type),
 }
 
 impl Type {
@@ -146,7 +153,6 @@ pub fn null_type() -> Type {
     }
 }
 
-#[cfg(test)]
 pub fn int32_type() -> Type {
     Type {
         identifier: "Int32".to_string(),
@@ -156,7 +162,6 @@ pub fn int32_type() -> Type {
     }
 }
 
-#[cfg(test)]
 pub fn int64_type() -> Type {
     Type {
         identifier: "Int64".to_string(),
@@ -166,7 +171,6 @@ pub fn int64_type() -> Type {
     }
 }
 
-#[cfg(test)]
 pub fn float32_type() -> Type {
     Type {
         identifier: "Float32".to_string(),
@@ -176,7 +180,6 @@ pub fn float32_type() -> Type {
     }
 }
 
-#[cfg(test)]
 pub fn float64_type() -> Type {
     Type {
         identifier: "Float64".to_string(),
@@ -186,7 +189,6 @@ pub fn float64_type() -> Type {
     }
 }
 
-#[cfg(test)]
 pub fn bool_type() -> Type {
     Type {
         identifier: "Bool".to_string(),

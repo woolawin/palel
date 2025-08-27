@@ -1,8 +1,44 @@
-use crate::palel::{MemoryModifier, Type, TypeFamily};
+use crate::palel::{
+    Expression, Literal, MemoryModifier, Type, TypeFamily, VariableType, bool_type, float64_type,
+    int32_type, null_type,
+};
 
-pub fn is_valid_variable_declaration(memory: MemoryModifier, variable: Type, value: Type) -> bool {
+pub fn determine_variable_type(
+    memory: MemoryModifier,
+    spec: Option<Type>,
+    expr: &Expression,
+) -> Option<VariableType> {
     match memory {
-        MemoryModifier::Dim | MemoryModifier::Var => can_implicitly_convert(variable, value),
+        MemoryModifier::Addr => Some(VariableType::Addr(spec)),
+        MemoryModifier::Ref => spec
+            .or(type_of_expression(&expr))
+            .map(|t| VariableType::Ref(t)),
+        MemoryModifier::Dim | MemoryModifier::Var => spec
+            .or(type_of_expression(&expr))
+            .map(|t| VariableType::Dim(t)),
+    }
+}
+
+pub fn type_of_expression(expr: &Expression) -> Option<Type> {
+    match expr {
+        Expression::Literal(literal) => match literal {
+            Literal::Boolean(_) => Some(bool_type()),
+            Literal::Null => Some(null_type()),
+            Literal::Number(value) => {
+                if value.contains(".") {
+                    Some(float64_type())
+                } else {
+                    Some(int32_type())
+                }
+            }
+            Literal::String(_) => None,
+        },
+    }
+}
+
+pub fn is_valid_type_assignment(memory: MemoryModifier, to: Type, from: Type) -> bool {
+    match memory {
+        MemoryModifier::Dim | MemoryModifier::Var => can_implicitly_convert(to, from),
         MemoryModifier::Addr | MemoryModifier::Ref => return false,
     }
 }

@@ -24,6 +24,7 @@ pub struct CFunction {
 #[derive(Debug, PartialEq)]
 pub struct CType {
     pub name: String,
+    pub is_pointer: bool,
 }
 
 #[derive(Debug, PartialEq)]
@@ -82,12 +83,46 @@ pub enum CExpression {
 pub struct CVariableDeclaration {
     pub name: String,
     pub var_type: CType,
-    pub is_pointer: bool,
     pub value: CExpression,
 }
 
 impl CVariableDeclaration {
     pub fn to_statement(self) -> CStatement {
         CStatement::Variable(self)
+    }
+}
+
+pub fn void_type(pointer: bool) -> CType {
+    CType {
+        name: "void".to_string(),
+        is_pointer: pointer,
+    }
+}
+
+pub fn int_type() -> CType {
+    CType {
+        name: "int".to_string(),
+        is_pointer: false,
+    }
+}
+
+pub fn long_type() -> CType {
+    CType {
+        name: "long".to_string(),
+        is_pointer: false,
+    }
+}
+
+pub fn float_type() -> CType {
+    CType {
+        name: "float".to_string(),
+        is_pointer: false,
+    }
+}
+
+pub fn double_type() -> CType {
+    CType {
+        name: "double".to_string(),
+        is_pointer: false,
     }
 }
