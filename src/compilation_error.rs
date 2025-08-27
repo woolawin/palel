@@ -93,9 +93,9 @@ impl CompilationError for DownstreamCompileFailed {
     }
 }
 
-pub struct VariableTypeUndefined {}
+pub struct VariableTypeAmbiguous {}
 
-impl CompilationError for VariableTypeUndefined {
+impl CompilationError for VariableTypeAmbiguous {
     fn message(&self) -> String {
         format!("could not determine type of variable")
     }

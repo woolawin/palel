@@ -1,5 +1,5 @@
 use crate::c::*;
-use crate::compilation_error::{CouldNotTranspileType, IncompatibleTypes, VariableTypeUndefined};
+use crate::compilation_error::{CouldNotTranspileType, IncompatibleTypes, VariableTypeAmbiguous};
 use crate::core::Of;
 use crate::palel::*;
 use crate::toolkit_c::CToolKit;
@@ -101,12 +101,12 @@ fn transpile_variable_declaration(
         match determine_variable_type(input.memory.clone(), input.value_type.clone(), &input.value)
         {
             Some(t) => t.clone(),
-            None => return Of::Error(Box::new(VariableTypeUndefined {})),
+            None => return Of::Error(Box::new(VariableTypeAmbiguous {})),
         };
 
     let expression_type = match type_of_expression(&input.value) {
         Some(t) => t,
-        None => return Of::Error(Box::new(VariableTypeUndefined {})),
+        None => return Of::Error(Box::new(VariableTypeAmbiguous {})),
     };
 
     if !is_valid_expression_assignment(variable_type.clone(), expression_type.clone()) {
