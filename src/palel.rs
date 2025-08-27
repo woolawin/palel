@@ -129,6 +129,31 @@ pub struct Type {
     pub size: Option<i32>,
 }
 
+impl Type {
+    pub fn set_identifier(&mut self, new_identifier: String) {
+        self.family = type_family_of(&new_identifier);
+        self.size = type_size_of(&new_identifier);
+        self.identifier = new_identifier;
+    }
+
+    pub fn is_null(&self) -> bool {
+        self.identifier == "Null"
+    }
+}
+
+impl ToString for Type {
+    fn to_string(&self) -> String {
+        let mut output = String::new();
+        output.push_str(self.identifier.as_str());
+        match self.postfix {
+            TypePostfix::Opt => output.push_str("?"),
+            TypePostfix::Err => output.push_str("!"),
+            _ => {}
+        };
+        output
+    }
+}
+
 #[derive(Debug, PartialEq, Clone)]
 pub enum VariableType {
     Addr(Option<Type>),
@@ -136,11 +161,26 @@ pub enum VariableType {
     Dim(Type),
 }
 
-impl Type {
-    pub fn set_identifier(&mut self, new_identifier: String) {
-        self.family = type_family_of(&new_identifier);
-        self.size = type_size_of(&new_identifier);
-        self.identifier = new_identifier;
+impl ToString for VariableType {
+    fn to_string(&self) -> String {
+        let mut output = String::new();
+        match self {
+            VariableType::Addr(typ) => {
+                output.push_str("addr ");
+                if let Some(addrtyp) = typ {
+                    output.push_str(addrtyp.to_string().as_str());
+                }
+            }
+            VariableType::Ref(reftype) => {
+                output.push_str("ref ");
+                output.push_str(reftype.to_string().as_str());
+            }
+            VariableType::Dim(dimtype) => {
+                output.push_str("dim ");
+                output.push_str(dimtype.to_string().as_str());
+            }
+        }
+        output
     }
 }
 

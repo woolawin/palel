@@ -1,6 +1,6 @@
 use crate::palel::{
-    Expression, Literal, MemoryModifier, Type, TypeFamily, VariableType, bool_type, float64_type,
-    int32_type, null_type,
+    Expression, Literal, MemoryModifier, Type, TypeFamily, TypePostfix, VariableType, bool_type,
+    float64_type, int32_type, null_type,
 };
 
 pub fn determine_variable_type(
@@ -48,6 +48,9 @@ pub fn is_valid_expression_assignment(to: VariableType, from: Type) -> bool {
 }
 
 pub fn can_implicitly_convert(to: Type, from: Type) -> bool {
+    if to.postfix == TypePostfix::Opt && from.is_null() {
+        return true;
+    }
     if to.family == TypeFamily::None || from.family == TypeFamily::None {
         return to == from;
     }
@@ -67,6 +70,15 @@ mod test {
     use super::*;
     use crate::palel::{bool_type, float32_type, float64_type, int32_type, int64_type};
 
+    fn with_postfix(typ: Type, postfix: TypePostfix) -> Type {
+        Type {
+            identifier: typ.identifier,
+            postfix: postfix,
+            family: typ.family,
+            size: typ.size,
+        }
+    }
+
     #[test]
     fn test_same_types() {
         assert!(can_implicitly_convert(int32_type(), int32_type()));
@@ -74,6 +86,31 @@ mod test {
         assert!(can_implicitly_convert(float32_type(), float32_type()));
         assert!(can_implicitly_convert(float64_type(), float64_type()));
         assert!(can_implicitly_convert(bool_type(), bool_type()));
+    }
+
+    #[test]
+    fn test_null() {
+        assert!(!can_implicitly_convert(int32_type(), null_type()));
+        assert!(!can_implicitly_convert(int64_type(), null_type()));
+        assert!(!can_implicitly_convert(float32_type(), null_type()));
+        assert!(!can_implicitly_convert(float64_type(), null_type()));
+
+        assert!(can_implicitly_convert(
+            with_postfix(int32_type(), TypePostfix::Opt),
+            null_type()
+        ));
+        assert!(can_implicitly_convert(
+            with_postfix(int64_type(), TypePostfix::Opt),
+            null_type()
+        ));
+        assert!(can_implicitly_convert(
+            with_postfix(float32_type(), TypePostfix::Opt),
+            null_type()
+        ));
+        assert!(can_implicitly_convert(
+            with_postfix(float64_type(), TypePostfix::Opt),
+            null_type()
+        ));
     }
 
     #[test]

@@ -1,8 +1,11 @@
+use crate::palel::{Type, VariableType};
+
 const NOOP_ERROR: i32 = 1;
 const DISK_ERROR: i32 = 2;
 const PARSE_ERROR: i32 = 3;
-const TRANSPILE_ERROR: i32 = 4;
-const DOWNSTREAM_ERROR: i32 = 5;
+const LOGIC_ERROR: i32 = 4;
+const TRANSPILE_ERROR: i32 = 5;
+const DOWNSTREAM_ERROR: i32 = 6;
 
 pub trait CompilationError {
     fn message(&self) -> String;
@@ -98,7 +101,7 @@ impl CompilationError for VariableTypeUndefined {
     }
 
     fn exit_code(&self) -> i32 {
-        TRANSPILE_ERROR
+        LOGIC_ERROR
     }
 }
 
@@ -111,5 +114,24 @@ impl CompilationError for CouldNotTranspileType {
 
     fn exit_code(&self) -> i32 {
         TRANSPILE_ERROR
+    }
+}
+
+pub struct IncompatibleTypes {
+    pub expected: VariableType,
+    pub actual: Type,
+}
+
+impl CompilationError for IncompatibleTypes {
+    fn message(&self) -> String {
+        format!(
+            "incompatible types, expected {}, received {}",
+            self.expected.to_string(),
+            self.actual.to_string()
+        )
+    }
+
+    fn exit_code(&self) -> i32 {
+        LOGIC_ERROR
     }
 }

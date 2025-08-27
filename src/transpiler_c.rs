@@ -1,5 +1,5 @@
 use crate::c::*;
-use crate::compilation_error::{CouldNotTranspileType, VariableTypeUndefined};
+use crate::compilation_error::{CouldNotTranspileType, IncompatibleTypes, VariableTypeUndefined};
 use crate::core::Of;
 use crate::palel::*;
 use crate::toolkit_c::CToolKit;
@@ -109,7 +109,13 @@ fn transpile_variable_declaration(
         None => return Of::Error(Box::new(VariableTypeUndefined {})),
     };
 
-    if !is_valid_expression_assignment(variable_type.clone(), expression_type.clone()) {}
+    if !is_valid_expression_assignment(variable_type.clone(), expression_type.clone()) {
+        return Of::Error(Box::new(IncompatibleTypes {
+            expected: variable_type,
+            actual: expression_type,
+        }));
+    }
+
     let expression = transpile_expression(&input.value);
 
     let var = CVariableDeclaration {
@@ -336,7 +342,7 @@ mod tests {
                                 family: TypeFamily::Int,
                                 size: Some(64),
                             }),
-                            value: Expression::Literal(Literal::Null),
+                            value: Expression::Literal(Literal::Number("0".to_string())),
                         }
                         .to_statement(),
                         VariableDeclaration {
