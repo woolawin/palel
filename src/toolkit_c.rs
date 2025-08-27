@@ -5,17 +5,14 @@ use crate::c::{
 use crate::compilation_error::UnknownInterface;
 use crate::core::Of;
 use crate::palel::{ProcedureCall, Type};
-use crate::transpiler_c::transpile_expressions;
+use crate::transpiler_c::{CTranspile, transpile_expressions};
 
 pub struct CToolKit {}
 
 impl CToolKit {
-    pub fn transpile_interface_call(
-        &self,
-        input: &ProcedureCall,
-    ) -> Of<(CFunctionCall, CSrcPatch)> {
+    pub fn transpile_interface_call(&self, input: &ProcedureCall) -> CTranspile<CFunctionCall> {
         if input.interface != "debug" {
-            return Of::Error(Box::new(UnknownInterface {
+            return CTranspile::Error(Box::new(UnknownInterface {
                 interface: input.interface.clone(),
             }));
         }
@@ -31,7 +28,7 @@ impl CToolKit {
             }],
         };
 
-        Of::Ok((function_call, patch))
+        CTranspile::Ok(function_call, patch)
     }
 
     pub fn transpile_type(&self, typ: &Type) -> Option<CType> {

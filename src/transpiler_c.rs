@@ -1,5 +1,7 @@
 use crate::c::*;
-use crate::compilation_error::{CouldNotTranspileType, IncompatibleTypes, VariableTypeAmbiguous};
+use crate::compilation_error::{
+    CompilationError, CouldNotTranspileType, IncompatibleTypes, VariableTypeAmbiguous,
+};
 use crate::core::Of;
 use crate::palel::*;
 use crate::toolkit_c::CToolKit;
@@ -8,6 +10,13 @@ use crate::type_checking::{
     determine_variable_type, is_valid_expression_assignment, type_of_expression,
 };
 
+pub enum CTranspile<T> {
+    Ok(T, CSrcPatch),
+    Error(Box<dyn CompilationError>),
+}
+
+use CTranspile::*;
+
 pub fn transpile(input: &Src, toolkit: &CToolKit) -> Of<CSrc> {
     let mut src = CSrc {
         includes: vec![],
@@ -15,8 +24,8 @@ pub fn transpile(input: &Src, toolkit: &CToolKit) -> Of<CSrc> {
     };
     if let Some(program) = input.programs.get(0) {
         match transpile_program(program, toolkit) {
-            Of::Error(err) => return Of::Error(err),
-            Of::Ok((program, patch)) => {
+            Error(err) => return Of::Error(err),
+            Ok(program, patch) => {
                 src.functions.push(program);
                 patch_src(&mut src, &patch);
             }
@@ -25,11 +34,11 @@ pub fn transpile(input: &Src, toolkit: &CToolKit) -> Of<CSrc> {
     Of::Ok(src)
 }
 
-fn transpile_program(input: &Program, toolkit: &CToolKit) -> Of<(CFunction, CSrcPatch)> {
+fn transpile_program(input: &Program, toolkit: &CToolKit) -> CTranspile<CFunction> {
     let mut patch = CSrcPatch::default();
     let mut block = match transpile_block(&input.do_block, toolkit) {
-        Of::Error(err) => return Of::Error(err),
-        Of::Ok((block, in_patch)) => {
+        Error(err) => return Error(err),
+        Ok(block, in_patch) => {
             merge_patch(&mut patch, &in_patch);
             block
         }
@@ -38,8 +47,8 @@ fn transpile_program(input: &Program, toolkit: &CToolKit) -> Of<(CFunction, CSrc
         value: Some(Literal::Number("0".to_string()).to_expression()),
     };
     match transpile_return(&ret_stmt) {
-        Of::Error(err) => return Of::Error(err),
-        Of::Ok((ret, in_patch)) => {
+        Error(err) => return Error(err),
+        Ok(ret, in_patch) => {
             merge_patch(&mut patch, &in_patch);
             block.statements.push(ret.to_statement());
         }
@@ -49,16 +58,16 @@ fn transpile_program(input: &Program, toolkit: &CToolKit) -> Of<(CFunction, CSrc
         return_type: int_type(),
         block: block,
     };
-    Of::Ok((function, patch))
+    Ok(function, patch)
 }
 
-fn transpile_block(input: &DoBlock, toolkit: &CToolKit) -> Of<(CBlock, CSrcPatch)> {
+fn transpile_block(input: &DoBlock, toolkit: &CToolKit) -> CTranspile<CBlock> {
     let mut statements: Vec<CStatement> = vec![];
     let mut patch = CSrcPatch::default();
     for statement in &input.statements {
         match transpile_statement(statement, toolkit) {
-            Of::Error(err) => return Of::Error(err),
-            Of::Ok((statement, in_patch)) => {
+            Error(err) => return Error(err),
+            Ok(statement, in_patch) => {
                 merge_patch(&mut patch, &in_patch);
                 statements.push(statement);
             }
@@ -67,27 +76,25 @@ fn transpile_block(input: &DoBlock, toolkit: &CToolKit) -> Of<(CBlock, CSrcPatch
     let block = CBlock {
         statements: statements,
     };
-    return Of::Ok((block, patch));
+    return Ok(block, patch);
 }
 
-fn transpile_statement(input: &Statement, toolkit: &CToolKit) -> Of<(CStatement, CSrcPatch)> {
+fn transpile_statement(input: &Statement, toolkit: &CToolKit) -> CTranspile<CStatement> {
     match input {
         Statement::ProcedureCall(procedure_call) => {
             match transpile_procedure_call(procedure_call, toolkit) {
-                Of::Error(err) => Of::Error(err),
-                Of::Ok((function_call, in_patch)) => {
-                    Of::Ok((function_call.to_statement(), in_patch))
-                }
+                Error(err) => Error(err),
+                Ok(function_call, in_patch) => Ok(function_call.to_statement(), in_patch),
             }
         }
         Statement::Return(ret) => match transpile_return(ret) {
-            Of::Error(err) => Of::Error(err),
-            Of::Ok((ret, patch)) => Of::Ok((ret.to_statement(), patch)),
+            Error(err) => Error(err),
+            Ok(ret, patch) => Ok(ret.to_statement(), patch),
         },
         Statement::Variable(variable_declaration) => {
             match transpile_variable_declaration(variable_declaration, toolkit) {
-                Of::Error(err) => Of::Error(err),
-                Of::Ok((var, patch)) => Of::Ok((var.to_statement(), patch)),
+                Error(err) => Error(err),
+                Ok(var, patch) => Ok(var.to_statement(), patch),
             }
         }
     }
@@ -96,23 +103,23 @@ fn transpile_statement(input: &Statement, toolkit: &CToolKit) -> Of<(CStatement,
 fn transpile_variable_declaration(
     input: &VariableDeclaration,
     toolkit: &CToolKit,
-) -> Of<(CVariableDeclaration, CSrcPatch)> {
+) -> CTranspile<CVariableDeclaration> {
     let variable_type: Type = match determine_variable_type(
         input.memory.clone(),
         input.schema_type.clone(),
         &input.expression,
     ) {
         Some(t) => t.clone(),
-        None => return Of::Error(Box::new(VariableTypeAmbiguous {})),
+        None => return Error(Box::new(VariableTypeAmbiguous {})),
     };
 
     let expression_type = match type_of_expression(&input.expression) {
         Some(t) => t,
-        None => return Of::Error(Box::new(VariableTypeAmbiguous {})),
+        None => return Error(Box::new(VariableTypeAmbiguous {})),
     };
 
     if !is_valid_expression_assignment(variable_type.clone(), expression_type.clone()) {
-        return Of::Error(Box::new(IncompatibleTypes {
+        return Error(Box::new(IncompatibleTypes {
             expected: variable_type,
             actual: expression_type,
         }));
@@ -124,25 +131,25 @@ fn transpile_variable_declaration(
         name: input.identifier.clone(),
         var_type: match toolkit.transpile_type(&variable_type) {
             Some(t) => t,
-            None => return Of::Error(Box::new(CouldNotTranspileType {})),
+            None => return Error(Box::new(CouldNotTranspileType {})),
         },
         value: expression,
     };
-    Of::Ok((var, CSrcPatch::default()))
+    Ok(var, CSrcPatch::default())
 }
 
-fn transpile_return(input: &Return) -> Of<(CReturn, CSrcPatch)> {
+fn transpile_return(input: &Return) -> CTranspile<CReturn> {
     let ret = CReturn {
         value: input.value.as_ref().map(|expr| transpile_expression(&expr)),
     };
 
-    Of::Ok((ret, CSrcPatch::default()))
+    Ok(ret, CSrcPatch::default())
 }
 
 fn transpile_procedure_call(
     input: &ProcedureCall,
     toolkit: &CToolKit,
-) -> Of<(CFunctionCall, CSrcPatch)> {
+) -> CTranspile<CFunctionCall> {
     if !input.interface.is_empty() {
         return toolkit.transpile_interface_call(input);
     }
@@ -151,7 +158,7 @@ fn transpile_procedure_call(
         arguments: transpile_expressions(&input.arguments),
     };
 
-    Of::Ok((function_call, CSrcPatch::default()))
+    Ok(function_call, CSrcPatch::default())
 }
 
 pub fn transpile_expressions(input: &Vec<Expression>) -> Vec<CExpression> {
