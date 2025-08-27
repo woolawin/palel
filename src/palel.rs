@@ -155,27 +155,27 @@ impl ToString for SchemaType {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub enum VariableType {
+pub enum Type {
     Addr(Option<SchemaType>),
     Ref(SchemaType),
     Dim(SchemaType),
 }
 
-impl ToString for VariableType {
+impl ToString for Type {
     fn to_string(&self) -> String {
         let mut output = String::new();
         match self {
-            VariableType::Addr(typ) => {
+            Type::Addr(typ) => {
                 output.push_str("addr ");
                 if let Some(addrtyp) = typ {
                     output.push_str(addrtyp.to_string().as_str());
                 }
             }
-            VariableType::Ref(reftype) => {
+            Type::Ref(reftype) => {
                 output.push_str("ref ");
                 output.push_str(reftype.to_string().as_str());
             }
-            VariableType::Dim(dimtype) => {
+            Type::Dim(dimtype) => {
                 output.push_str("dim ");
                 output.push_str(dimtype.to_string().as_str());
             }

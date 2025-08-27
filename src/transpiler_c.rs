@@ -97,7 +97,7 @@ fn transpile_variable_declaration(
     input: &VariableDeclaration,
     toolkit: &CToolKit,
 ) -> Of<(CVariableDeclaration, CSrcPatch)> {
-    let variable_type: VariableType =
+    let variable_type: Type =
         match determine_variable_type(input.memory.clone(), input.value_type.clone(), &input.value)
         {
             Some(t) => t.clone(),

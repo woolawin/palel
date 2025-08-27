@@ -1,21 +1,19 @@
 use crate::palel::{
-    Expression, Literal, MemoryModifier, SchemaType, TypeFamily, TypePostfix, VariableType,
-    bool_type, float64_type, int32_type, null_type,
+    Expression, Literal, MemoryModifier, SchemaType, Type, TypeFamily, TypePostfix, bool_type,
+    float64_type, int32_type, null_type,
 };
 
 pub fn determine_variable_type(
     memory: MemoryModifier,
     spec: Option<SchemaType>,
     expr: &Expression,
-) -> Option<VariableType> {
+) -> Option<Type> {
     match memory {
-        MemoryModifier::Addr => Some(VariableType::Addr(spec)),
-        MemoryModifier::Ref => spec
-            .or(type_of_expression(&expr))
-            .map(|t| VariableType::Ref(t)),
-        MemoryModifier::Dim | MemoryModifier::Var => spec
-            .or(type_of_expression(&expr))
-            .map(|t| VariableType::Dim(t)),
+        MemoryModifier::Addr => Some(Type::Addr(spec)),
+        MemoryModifier::Ref => spec.or(type_of_expression(&expr)).map(|t| Type::Ref(t)),
+        MemoryModifier::Dim | MemoryModifier::Var => {
+            spec.or(type_of_expression(&expr)).map(|t| Type::Dim(t))
+        }
     }
 }
 
@@ -36,14 +34,14 @@ pub fn type_of_expression(expr: &Expression) -> Option<SchemaType> {
     }
 }
 
-pub fn is_valid_expression_assignment(to: VariableType, from: SchemaType) -> bool {
+pub fn is_valid_expression_assignment(to: Type, from: SchemaType) -> bool {
     match to {
-        VariableType::Addr(typ) => match typ {
+        Type::Addr(typ) => match typ {
             None => true,
             Some(addrtyp) => can_implicitly_convert(addrtyp, from),
         },
-        VariableType::Dim(dimtype) => can_implicitly_convert(dimtype, from),
-        VariableType::Ref(reftype) => can_implicitly_convert(reftype, from),
+        Type::Dim(dimtype) => can_implicitly_convert(dimtype, from),
+        Type::Ref(reftype) => can_implicitly_convert(reftype, from),
     }
 }
 

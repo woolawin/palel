@@ -4,7 +4,7 @@ use crate::c::{
 };
 use crate::compilation_error::UnknownInterface;
 use crate::core::Of;
-use crate::palel::{ProcedureCall, VariableType};
+use crate::palel::{ProcedureCall, Type};
 use crate::transpiler_c::transpile_expressions;
 
 pub struct CToolKit {}
@@ -34,7 +34,7 @@ impl CToolKit {
         Of::Ok((function_call, patch))
     }
 
-    pub fn transpile_type(&self, typ: &VariableType) -> Option<CType> {
+    pub fn transpile_type(&self, typ: &Type) -> Option<CType> {
         fn map_type(type_name: &String) -> Option<CType> {
             match type_name.as_str() {
                 "Int32" => Some(int_type()),
@@ -54,9 +54,9 @@ impl CToolKit {
         }
 
         match typ {
-            VariableType::Addr(_) => Some(void_type(true)),
-            VariableType::Ref(reftyp) => map_type(&reftyp.identifier).map(as_pointer),
-            VariableType::Dim(dimtype) => map_type(&dimtype.identifier),
+            Type::Addr(_) => Some(void_type(true)),
+            Type::Ref(reftyp) => map_type(&reftyp.identifier).map(as_pointer),
+            Type::Dim(dimtype) => map_type(&dimtype.identifier),
         }
     }
 }
