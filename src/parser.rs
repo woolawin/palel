@@ -172,7 +172,7 @@ fn get_identifier(rule: Pair<'_, Rule>) -> String {
     return "".to_string();
 }
 
-fn parse_type_spec(rule: Pair<'_, Rule>) -> Type {
+fn parse_type_spec(rule: Pair<'_, Rule>) -> SchemaType {
     let mut typ = null_type();
     for inner in rule.into_inner() {
         match inner.as_rule() {
@@ -384,7 +384,7 @@ mod tests {
                         VariableDeclaration {
                             memory: MemoryModifier::Dim,
                             identifier: "e".to_string(),
-                            value_type: Some(Type {
+                            value_type: Some(SchemaType {
                                 identifier: "Int32".to_string(),
                                 postfix: TypePostfix::None,
                                 family: TypeFamily::Int,
@@ -396,7 +396,7 @@ mod tests {
                         VariableDeclaration {
                             memory: MemoryModifier::Dim,
                             identifier: "f".to_string(),
-                            value_type: Some(Type {
+                            value_type: Some(SchemaType {
                                 identifier: "Float64".to_string(),
                                 postfix: TypePostfix::None,
                                 family: TypeFamily::Float,
@@ -408,7 +408,7 @@ mod tests {
                         VariableDeclaration {
                             memory: MemoryModifier::Dim,
                             identifier: "g".to_string(),
-                            value_type: Some(Type {
+                            value_type: Some(SchemaType {
                                 identifier: "Bool".to_string(),
                                 postfix: TypePostfix::None,
                                 family: TypeFamily::None,
@@ -420,7 +420,7 @@ mod tests {
                         VariableDeclaration {
                             memory: MemoryModifier::Dim,
                             identifier: "my_z_var".to_string(),
-                            value_type: Some(Type {
+                            value_type: Some(SchemaType {
                                 identifier: "Int64".to_string(),
                                 postfix: TypePostfix::None,
                                 family: TypeFamily::Int,
@@ -432,7 +432,7 @@ mod tests {
                         VariableDeclaration {
                             memory: MemoryModifier::Dim,
                             identifier: "maybe_num".to_string(),
-                            value_type: Some(Type {
+                            value_type: Some(SchemaType {
                                 identifier: "Int32".to_string(),
                                 postfix: TypePostfix::Opt,
                                 family: TypeFamily::Int,

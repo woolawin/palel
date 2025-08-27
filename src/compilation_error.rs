@@ -1,4 +1,4 @@
-use crate::palel::{Type, VariableType};
+use crate::palel::{SchemaType, VariableType};
 
 const NOOP_ERROR: i32 = 1;
 const DISK_ERROR: i32 = 2;
@@ -119,7 +119,7 @@ impl CompilationError for CouldNotTranspileType {
 
 pub struct IncompatibleTypes {
     pub expected: VariableType,
-    pub actual: Type,
+    pub actual: SchemaType,
 }
 
 impl CompilationError for IncompatibleTypes {

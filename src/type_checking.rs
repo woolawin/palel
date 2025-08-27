@@ -1,11 +1,11 @@
 use crate::palel::{
-    Expression, Literal, MemoryModifier, Type, TypeFamily, TypePostfix, VariableType, bool_type,
-    float64_type, int32_type, null_type,
+    Expression, Literal, MemoryModifier, SchemaType, TypeFamily, TypePostfix, VariableType,
+    bool_type, float64_type, int32_type, null_type,
 };
 
 pub fn determine_variable_type(
     memory: MemoryModifier,
-    spec: Option<Type>,
+    spec: Option<SchemaType>,
     expr: &Expression,
 ) -> Option<VariableType> {
     match memory {
@@ -19,7 +19,7 @@ pub fn determine_variable_type(
     }
 }
 
-pub fn type_of_expression(expr: &Expression) -> Option<Type> {
+pub fn type_of_expression(expr: &Expression) -> Option<SchemaType> {
     match expr {
         Expression::Literal(literal) => match literal {
             Literal::Boolean(_) => Some(bool_type()),
@@ -36,7 +36,7 @@ pub fn type_of_expression(expr: &Expression) -> Option<Type> {
     }
 }
 
-pub fn is_valid_expression_assignment(to: VariableType, from: Type) -> bool {
+pub fn is_valid_expression_assignment(to: VariableType, from: SchemaType) -> bool {
     match to {
         VariableType::Addr(typ) => match typ {
             None => true,
@@ -47,7 +47,7 @@ pub fn is_valid_expression_assignment(to: VariableType, from: Type) -> bool {
     }
 }
 
-pub fn can_implicitly_convert(to: Type, from: Type) -> bool {
+pub fn can_implicitly_convert(to: SchemaType, from: SchemaType) -> bool {
     if to.postfix == TypePostfix::Opt && from.is_null() {
         return true;
     }
@@ -70,8 +70,8 @@ mod test {
     use super::*;
     use crate::palel::{bool_type, float32_type, float64_type, int32_type, int64_type};
 
-    fn with_postfix(typ: Type, postfix: TypePostfix) -> Type {
-        Type {
+    fn with_postfix(typ: SchemaType, postfix: TypePostfix) -> SchemaType {
+        SchemaType {
             identifier: typ.identifier,
             postfix: postfix,
             family: typ.family,

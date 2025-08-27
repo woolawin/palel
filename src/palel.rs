@@ -81,7 +81,7 @@ pub enum MemoryModifier {
 pub struct VariableDeclaration {
     pub memory: MemoryModifier,
     pub identifier: String,
-    pub value_type: Option<Type>,
+    pub value_type: Option<SchemaType>,
     pub value: Expression,
 }
 
@@ -122,14 +122,14 @@ pub fn type_size_of(type_name: &String) -> Option<i32> {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct Type {
+pub struct SchemaType {
     pub identifier: String,
     pub postfix: TypePostfix,
     pub family: TypeFamily,
     pub size: Option<i32>,
 }
 
-impl Type {
+impl SchemaType {
     pub fn set_identifier(&mut self, new_identifier: String) {
         self.family = type_family_of(&new_identifier);
         self.size = type_size_of(&new_identifier);
@@ -141,7 +141,7 @@ impl Type {
     }
 }
 
-impl ToString for Type {
+impl ToString for SchemaType {
     fn to_string(&self) -> String {
         let mut output = String::new();
         output.push_str(self.identifier.as_str());
@@ -156,9 +156,9 @@ impl ToString for Type {
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum VariableType {
-    Addr(Option<Type>),
-    Ref(Type),
-    Dim(Type),
+    Addr(Option<SchemaType>),
+    Ref(SchemaType),
+    Dim(SchemaType),
 }
 
 impl ToString for VariableType {
@@ -184,8 +184,8 @@ impl ToString for VariableType {
     }
 }
 
-pub fn null_type() -> Type {
-    Type {
+pub fn null_type() -> SchemaType {
+    SchemaType {
         identifier: "Null".to_string(),
         postfix: TypePostfix::None,
         family: TypeFamily::None,
@@ -193,8 +193,8 @@ pub fn null_type() -> Type {
     }
 }
 
-pub fn int32_type() -> Type {
-    Type {
+pub fn int32_type() -> SchemaType {
+    SchemaType {
         identifier: "Int32".to_string(),
         postfix: TypePostfix::None,
         family: TypeFamily::Int,
@@ -202,8 +202,8 @@ pub fn int32_type() -> Type {
     }
 }
 
-pub fn int64_type() -> Type {
-    Type {
+pub fn int64_type() -> SchemaType {
+    SchemaType {
         identifier: "Int64".to_string(),
         postfix: TypePostfix::None,
         family: TypeFamily::Int,
@@ -211,8 +211,8 @@ pub fn int64_type() -> Type {
     }
 }
 
-pub fn float32_type() -> Type {
-    Type {
+pub fn float32_type() -> SchemaType {
+    SchemaType {
         identifier: "Float32".to_string(),
         postfix: TypePostfix::None,
         family: TypeFamily::Float,
@@ -220,8 +220,8 @@ pub fn float32_type() -> Type {
     }
 }
 
-pub fn float64_type() -> Type {
-    Type {
+pub fn float64_type() -> SchemaType {
+    SchemaType {
         identifier: "Float64".to_string(),
         postfix: TypePostfix::None,
         family: TypeFamily::Float,
@@ -229,8 +229,8 @@ pub fn float64_type() -> Type {
     }
 }
 
-pub fn bool_type() -> Type {
-    Type {
+pub fn bool_type() -> SchemaType {
+    SchemaType {
         identifier: "Bool".to_string(),
         postfix: TypePostfix::None,
         family: TypeFamily::None,
