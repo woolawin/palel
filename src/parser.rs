@@ -93,8 +93,8 @@ fn parse_variable_declaration(rule: Pair<'_, Rule>) -> Option<VariableDeclaratio
     let mut var = VariableDeclaration {
         memory: MemoryModifier::Var,
         identifier: "".to_string(),
-        value_type: None,
-        value: Expression::Literal(Literal::Null),
+        schema_type: None,
+        expression: Expression::Literal(Literal::Null),
     };
     for inner in rule.into_inner() {
         match inner.as_rule() {
@@ -105,12 +105,12 @@ fn parse_variable_declaration(rule: Pair<'_, Rule>) -> Option<VariableDeclaratio
                 var.identifier = get_identifier(inner);
             }
             Rule::type_spec => {
-                var.value_type = Some(parse_type_spec(inner));
+                var.schema_type = Some(parse_type_spec(inner));
             }
             Rule::expression => {
                 match parse_expression(inner) {
                     Some(expr) => {
-                        var.value = expr;
+                        var.expression = expr;
                     }
                     None => {
                         return None;
@@ -356,89 +356,89 @@ mod tests {
                         VariableDeclaration {
                             memory: MemoryModifier::Dim,
                             identifier: "a".to_string(),
-                            value_type: None,
-                            value: Expression::Literal(Literal::Number("1".to_string())),
+                            schema_type: None,
+                            expression: Expression::Literal(Literal::Number("1".to_string())),
                         }
                         .to_statement(),
                         VariableDeclaration {
                             memory: MemoryModifier::Ref,
                             identifier: "b".to_string(),
-                            value_type: None,
-                            value: Expression::Literal(Literal::Number("2".to_string())),
+                            schema_type: None,
+                            expression: Expression::Literal(Literal::Number("2".to_string())),
                         }
                         .to_statement(),
                         VariableDeclaration {
                             memory: MemoryModifier::Var,
                             identifier: "c".to_string(),
-                            value_type: None,
-                            value: Expression::Literal(Literal::Number("3".to_string())),
+                            schema_type: None,
+                            expression: Expression::Literal(Literal::Number("3".to_string())),
                         }
                         .to_statement(),
                         VariableDeclaration {
                             memory: MemoryModifier::Addr,
                             identifier: "d".to_string(),
-                            value_type: None,
-                            value: Expression::Literal(Literal::Number("4".to_string())),
+                            schema_type: None,
+                            expression: Expression::Literal(Literal::Number("4".to_string())),
                         }
                         .to_statement(),
                         VariableDeclaration {
                             memory: MemoryModifier::Dim,
                             identifier: "e".to_string(),
-                            value_type: Some(SchemaType {
+                            schema_type: Some(SchemaType {
                                 identifier: "Int32".to_string(),
                                 postfix: TypePostfix::None,
                                 family: TypeFamily::Int,
                                 size: Some(32),
                             }),
-                            value: Expression::Literal(Literal::Number("-5".to_string())),
+                            expression: Expression::Literal(Literal::Number("-5".to_string())),
                         }
                         .to_statement(),
                         VariableDeclaration {
                             memory: MemoryModifier::Dim,
                             identifier: "f".to_string(),
-                            value_type: Some(SchemaType {
+                            schema_type: Some(SchemaType {
                                 identifier: "Float64".to_string(),
                                 postfix: TypePostfix::None,
                                 family: TypeFamily::Float,
                                 size: Some(64),
                             }),
-                            value: Expression::Literal(Literal::Number("6.2".to_string())),
+                            expression: Expression::Literal(Literal::Number("6.2".to_string())),
                         }
                         .to_statement(),
                         VariableDeclaration {
                             memory: MemoryModifier::Dim,
                             identifier: "g".to_string(),
-                            value_type: Some(SchemaType {
+                            schema_type: Some(SchemaType {
                                 identifier: "Bool".to_string(),
                                 postfix: TypePostfix::None,
                                 family: TypeFamily::None,
                                 size: None,
                             }),
-                            value: Expression::Literal(Literal::Boolean(true)),
+                            expression: Expression::Literal(Literal::Boolean(true)),
                         }
                         .to_statement(),
                         VariableDeclaration {
                             memory: MemoryModifier::Dim,
                             identifier: "my_z_var".to_string(),
-                            value_type: Some(SchemaType {
+                            schema_type: Some(SchemaType {
                                 identifier: "Int64".to_string(),
                                 postfix: TypePostfix::None,
                                 family: TypeFamily::Int,
                                 size: Some(64),
                             }),
-                            value: Expression::Literal(Literal::Null),
+                            expression: Expression::Literal(Literal::Null),
                         }
                         .to_statement(),
                         VariableDeclaration {
                             memory: MemoryModifier::Dim,
                             identifier: "maybe_num".to_string(),
-                            value_type: Some(SchemaType {
+                            schema_type: Some(SchemaType {
                                 identifier: "Int32".to_string(),
                                 postfix: TypePostfix::Opt,
                                 family: TypeFamily::Int,
                                 size: Some(32),
                             }),
-                            value: Expression::Literal(Literal::Null),
+                            expression: Expression::Literal(Literal::Null),
                         }
                         .to_statement(),
                     ],
