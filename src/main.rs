@@ -9,6 +9,7 @@ mod renderer_c;
 mod toolkit_c;
 mod transpiler_c;
 mod transpiler_c_patch;
+mod type_checking;
 
 use std::process;
 

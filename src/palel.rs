@@ -99,7 +99,99 @@ pub enum TypePostfix {
 }
 
 #[derive(Debug, PartialEq)]
+pub enum TypeFamily {
+    Int,
+    Float,
+    None,
+}
+
+pub fn type_family_of(type_name: &String) -> TypeFamily {
+    match type_name.as_str() {
+        "Int32" | "Int64" => TypeFamily::Int,
+        "Float32" | "Float64" => TypeFamily::Float,
+        _ => TypeFamily::None,
+    }
+}
+
+pub fn type_size_of(type_name: &String) -> Option<i32> {
+    match type_name.as_str() {
+        "Int32" | "Float32" => Some(32),
+        "Int64" | "Float64" => Some(64),
+        _ => None,
+    }
+}
+
+#[derive(Debug, PartialEq)]
 pub struct Type {
     pub identifier: String,
     pub postfix: TypePostfix,
+    pub family: TypeFamily,
+    pub size: Option<i32>,
+}
+
+impl Type {
+    pub fn set_identifier(&mut self, new_identifier: String) {
+        self.family = type_family_of(&new_identifier);
+        self.size = type_size_of(&new_identifier);
+        self.identifier = new_identifier;
+    }
+}
+
+pub fn null_type() -> Type {
+    Type {
+        identifier: "Null".to_string(),
+        postfix: TypePostfix::None,
+        family: TypeFamily::None,
+        size: None,
+    }
+}
+
+#[cfg(test)]
+pub fn int32_type() -> Type {
+    Type {
+        identifier: "Int32".to_string(),
+        postfix: TypePostfix::None,
+        family: TypeFamily::Int,
+        size: Some(32),
+    }
+}
+
+#[cfg(test)]
+pub fn int64_type() -> Type {
+    Type {
+        identifier: "Int64".to_string(),
+        postfix: TypePostfix::None,
+        family: TypeFamily::Int,
+        size: Some(64),
+    }
+}
+
+#[cfg(test)]
+pub fn float32_type() -> Type {
+    Type {
+        identifier: "Float32".to_string(),
+        postfix: TypePostfix::None,
+        family: TypeFamily::Float,
+        size: Some(32),
+    }
+}
+
+#[cfg(test)]
+pub fn float64_type() -> Type {
+    Type {
+        identifier: "Float64".to_string(),
+        postfix: TypePostfix::None,
+        family: TypeFamily::Float,
+        size: Some(64),
+    }
+}
+
+#[cfg(test)]
+pub fn bool_type() -> Type {
+    Type {
+        identifier: "Bool".to_string(),
+        postfix: TypePostfix::None,
+        family: TypeFamily::None,
+        size: None,
+    }
 }

@@ -301,6 +301,8 @@ mod tests {
                             value_type: Some(Type {
                                 identifier: "Int32".to_string(),
                                 postfix: TypePostfix::None,
+                                family: TypeFamily::Int,
+                                size: Some(32),
                             }),
                             value: Expression::Literal(Literal::Number("-5".to_string())),
                         }
@@ -311,6 +313,8 @@ mod tests {
                             value_type: Some(Type {
                                 identifier: "Float64".to_string(),
                                 postfix: TypePostfix::None,
+                                family: TypeFamily::Float,
+                                size: Some(64),
                             }),
                             value: Expression::Literal(Literal::Number("6.2".to_string())),
                         }
@@ -321,6 +325,8 @@ mod tests {
                             value_type: Some(Type {
                                 identifier: "Bool".to_string(),
                                 postfix: TypePostfix::None,
+                                family: TypeFamily::None,
+                                size: None,
                             }),
                             value: Expression::Literal(Literal::Boolean(true)),
                         }
@@ -338,6 +344,8 @@ mod tests {
                             value_type: Some(Type {
                                 identifier: "Int64".to_string(),
                                 postfix: TypePostfix::None,
+                                family: TypeFamily::Int,
+                                size: Some(64),
                             }),
                             value: Expression::Literal(Literal::Null),
                         }
@@ -348,6 +356,8 @@ mod tests {
                             value_type: Some(Type {
                                 identifier: "Int32".to_string(),
                                 postfix: TypePostfix::Opt,
+                                family: TypeFamily::Int,
+                                size: Some(32),
                             }),
                             value: Expression::Literal(Literal::Null),
                         }

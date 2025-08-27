@@ -173,14 +173,11 @@ fn get_identifier(rule: Pair<'_, Rule>) -> String {
 }
 
 fn parse_type_spec(rule: Pair<'_, Rule>) -> Type {
-    let mut typ = Type {
-        identifier: "".to_string(),
-        postfix: TypePostfix::None,
-    };
+    let mut typ = null_type();
     for inner in rule.into_inner() {
         match inner.as_rule() {
             Rule::type_name => {
-                typ.identifier = inner.as_str().to_string();
+                typ.set_identifier(inner.as_str().to_string());
             }
             Rule::type_postfix => {
                 match inner.as_str() {
@@ -390,6 +387,8 @@ mod tests {
                             value_type: Some(Type {
                                 identifier: "Int32".to_string(),
                                 postfix: TypePostfix::None,
+                                family: TypeFamily::Int,
+                                size: Some(32),
                             }),
                             value: Expression::Literal(Literal::Number("-5".to_string())),
                         }
@@ -400,6 +399,8 @@ mod tests {
                             value_type: Some(Type {
                                 identifier: "Float64".to_string(),
                                 postfix: TypePostfix::None,
+                                family: TypeFamily::Float,
+                                size: Some(64),
                             }),
                             value: Expression::Literal(Literal::Number("6.2".to_string())),
                         }
@@ -410,6 +411,8 @@ mod tests {
                             value_type: Some(Type {
                                 identifier: "Bool".to_string(),
                                 postfix: TypePostfix::None,
+                                family: TypeFamily::None,
+                                size: None,
                             }),
                             value: Expression::Literal(Literal::Boolean(true)),
                         }
@@ -420,6 +423,8 @@ mod tests {
                             value_type: Some(Type {
                                 identifier: "Int64".to_string(),
                                 postfix: TypePostfix::None,
+                                family: TypeFamily::Int,
+                                size: Some(64),
                             }),
                             value: Expression::Literal(Literal::Null),
                         }
@@ -430,6 +435,8 @@ mod tests {
                             value_type: Some(Type {
                                 identifier: "Int32".to_string(),
                                 postfix: TypePostfix::Opt,
+                                family: TypeFamily::Int,
+                                size: Some(32),
                             }),
                             value: Expression::Literal(Literal::Null),
                         }
