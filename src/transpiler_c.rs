@@ -370,7 +370,7 @@ mod tests {
                                 identifier: SchemaIdentifier::Int32,
                                 postfix: TypePostfix::None,
                                 family: TypeFamily::Int,
-                                size: Some(32),
+                                width: Some(32),
                             }),
                             expression: Expression::Literal(Literal::Number("-5".to_string())),
                         }
@@ -382,7 +382,7 @@ mod tests {
                                 identifier: SchemaIdentifier::Float64,
                                 postfix: TypePostfix::None,
                                 family: TypeFamily::Float,
-                                size: Some(64),
+                                width: Some(64),
                             }),
                             expression: Expression::Literal(Literal::Number("6.2".to_string())),
                         }
@@ -394,7 +394,7 @@ mod tests {
                                 identifier: SchemaIdentifier::Bool,
                                 postfix: TypePostfix::None,
                                 family: TypeFamily::None,
-                                size: None,
+                                width: None,
                             }),
                             expression: Expression::Literal(Literal::Boolean(true)),
                         }
@@ -413,7 +413,7 @@ mod tests {
                                 identifier: SchemaIdentifier::Int64,
                                 postfix: TypePostfix::None,
                                 family: TypeFamily::Int,
-                                size: Some(64),
+                                width: Some(64),
                             }),
                             expression: Expression::Literal(Literal::Number("0".to_string())),
                         }
@@ -425,7 +425,7 @@ mod tests {
                                 identifier: SchemaIdentifier::Int32,
                                 postfix: TypePostfix::Opt,
                                 family: TypeFamily::Int,
-                                size: Some(32),
+                                width: Some(32),
                             }),
                             expression: Expression::Literal(Literal::Null),
                         }

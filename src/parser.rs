@@ -177,7 +177,7 @@ fn parse_type_spec(rule: Pair<'_, Rule>) -> SchemaType {
         identifier: SchemaIdentifier::UserDefined("".to_string()),
         postfix: TypePostfix::None,
         family: TypeFamily::None,
-        size: None,
+        width: None,
     };
     for inner in rule.into_inner() {
         match inner.as_rule() {
@@ -262,8 +262,8 @@ fn get_bool_value(rule: Pair<'_, Rule>) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use pretty_assertions::assert_eq;
     use SchemaIdentifier::*;
+    use pretty_assertions::assert_eq;
 
     fn run(input: &str) -> Src {
         let file = SrcFile {
@@ -394,7 +394,7 @@ mod tests {
                                 identifier: Int32,
                                 postfix: TypePostfix::None,
                                 family: TypeFamily::Int,
-                                size: Some(32),
+                                width: Some(32),
                             }),
                             expression: Expression::Literal(Literal::Number("-5".to_string())),
                         }
@@ -406,7 +406,7 @@ mod tests {
                                 identifier: Float64,
                                 postfix: TypePostfix::None,
                                 family: TypeFamily::Float,
-                                size: Some(64),
+                                width: Some(64),
                             }),
                             expression: Expression::Literal(Literal::Number("6.2".to_string())),
                         }
@@ -418,7 +418,7 @@ mod tests {
                                 identifier: Bool,
                                 postfix: TypePostfix::None,
                                 family: TypeFamily::None,
-                                size: None,
+                                width: None,
                             }),
                             expression: Expression::Literal(Literal::Boolean(true)),
                         }
@@ -430,7 +430,7 @@ mod tests {
                                 identifier: Int64,
                                 postfix: TypePostfix::None,
                                 family: TypeFamily::Int,
-                                size: Some(64),
+                                width: Some(64),
                             }),
                             expression: Expression::Literal(Literal::Null),
                         }
@@ -442,7 +442,7 @@ mod tests {
                                 identifier: Int32,
                                 postfix: TypePostfix::Opt,
                                 family: TypeFamily::Int,
-                                size: Some(32),
+                                width: Some(32),
                             }),
                             expression: Expression::Literal(Literal::Null),
                         }

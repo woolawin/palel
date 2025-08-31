@@ -101,17 +101,16 @@ pub fn can_implicitly_convert(to: &SchemaType, from: &SchemaType) -> bool {
         return false;
     }
 
-    let to_size = to.size.unwrap_or(0);
-    let from_size = from.size.unwrap_or(0);
+    let to_width = to.width.unwrap_or(0);
+    let from_width = from.width.unwrap_or(0);
 
-    return to_size >= from_size;
+    return to_width >= from_width;
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
     use crate::palel::schema_type;
-    use SchemaIdentifier::*;
 
     #[test]
     fn test_same_types() {
