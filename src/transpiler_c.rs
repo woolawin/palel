@@ -367,7 +367,7 @@ mod tests {
                             memory: MemoryModifier::Dim,
                             identifier: "e".to_string(),
                             schema_type: Some(SchemaType {
-                                identifier: "Int32".to_string(),
+                                identifier: SchemaIdentifier::Int32,
                                 postfix: TypePostfix::None,
                                 family: TypeFamily::Int,
                                 size: Some(32),
@@ -379,7 +379,7 @@ mod tests {
                             memory: MemoryModifier::Dim,
                             identifier: "f".to_string(),
                             schema_type: Some(SchemaType {
-                                identifier: "Float64".to_string(),
+                                identifier: SchemaIdentifier::Float64,
                                 postfix: TypePostfix::None,
                                 family: TypeFamily::Float,
                                 size: Some(64),
@@ -391,7 +391,7 @@ mod tests {
                             memory: MemoryModifier::Dim,
                             identifier: "g".to_string(),
                             schema_type: Some(SchemaType {
-                                identifier: "Bool".to_string(),
+                                identifier: SchemaIdentifier::Bool,
                                 postfix: TypePostfix::None,
                                 family: TypeFamily::None,
                                 size: None,
@@ -410,7 +410,7 @@ mod tests {
                             memory: MemoryModifier::Dim,
                             identifier: "my_z_var".to_string(),
                             schema_type: Some(SchemaType {
-                                identifier: "Int64".to_string(),
+                                identifier: SchemaIdentifier::Int64,
                                 postfix: TypePostfix::None,
                                 family: TypeFamily::Int,
                                 size: Some(64),
@@ -422,7 +422,7 @@ mod tests {
                             memory: MemoryModifier::Dim,
                             identifier: "maybe_num".to_string(),
                             schema_type: Some(SchemaType {
-                                identifier: "Int32".to_string(),
+                                identifier: SchemaIdentifier::Int32,
                                 postfix: TypePostfix::Opt,
                                 family: TypeFamily::Int,
                                 size: Some(32),

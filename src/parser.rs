@@ -173,11 +173,16 @@ fn get_identifier(rule: Pair<'_, Rule>) -> String {
 }
 
 fn parse_type_spec(rule: Pair<'_, Rule>) -> SchemaType {
-    let mut typ = SchemaType { identifier: "".to_string(), postfix: TypePostfix::None, family: TypeFamily::None, size: None };
+    let mut typ = SchemaType {
+        identifier: SchemaIdentifier::UserDefined("".to_string()),
+        postfix: TypePostfix::None,
+        family: TypeFamily::None,
+        size: None,
+    };
     for inner in rule.into_inner() {
         match inner.as_rule() {
             Rule::type_name => {
-                typ.set_identifier(inner.as_str().to_string());
+                typ.set_identifier(schema_identifier_from_string(inner.as_str().to_string()));
             }
             Rule::type_postfix => {
                 match inner.as_str() {
@@ -258,6 +263,7 @@ fn get_bool_value(rule: Pair<'_, Rule>) -> bool {
 mod tests {
     use super::*;
     use pretty_assertions::assert_eq;
+    use SchemaIdentifier::*;
 
     fn run(input: &str) -> Src {
         let file = SrcFile {
@@ -385,7 +391,7 @@ mod tests {
                             memory: MemoryModifier::Dim,
                             identifier: "e".to_string(),
                             schema_type: Some(SchemaType {
-                                identifier: "Int32".to_string(),
+                                identifier: Int32,
                                 postfix: TypePostfix::None,
                                 family: TypeFamily::Int,
                                 size: Some(32),
@@ -397,7 +403,7 @@ mod tests {
                             memory: MemoryModifier::Dim,
                             identifier: "f".to_string(),
                             schema_type: Some(SchemaType {
-                                identifier: "Float64".to_string(),
+                                identifier: Float64,
                                 postfix: TypePostfix::None,
                                 family: TypeFamily::Float,
                                 size: Some(64),
@@ -409,7 +415,7 @@ mod tests {
                             memory: MemoryModifier::Dim,
                             identifier: "g".to_string(),
                             schema_type: Some(SchemaType {
-                                identifier: "Bool".to_string(),
+                                identifier: Bool,
                                 postfix: TypePostfix::None,
                                 family: TypeFamily::None,
                                 size: None,
@@ -421,7 +427,7 @@ mod tests {
                             memory: MemoryModifier::Dim,
                             identifier: "my_z_var".to_string(),
                             schema_type: Some(SchemaType {
-                                identifier: "Int64".to_string(),
+                                identifier: Int64,
                                 postfix: TypePostfix::None,
                                 family: TypeFamily::Int,
                                 size: Some(64),
@@ -433,7 +439,7 @@ mod tests {
                             memory: MemoryModifier::Dim,
                             identifier: "maybe_num".to_string(),
                             schema_type: Some(SchemaType {
-                                identifier: "Int32".to_string(),
+                                identifier: Int32,
                                 postfix: TypePostfix::Opt,
                                 family: TypeFamily::Int,
                                 size: Some(32),

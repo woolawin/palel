@@ -3,7 +3,7 @@ use crate::c::{
     int_type, long_type, void_type,
 };
 use crate::compilation_error::{TypeNotNullable, UnknownInterface};
-use crate::palel::{ProcedureCall, Type};
+use crate::palel::{ProcedureCall, SchemaIdentifier, Type};
 use crate::transpiler_c::{CTranspile, transpile_expressions};
 use crate::transpiler_c_patch::merge_patch;
 
@@ -42,13 +42,13 @@ impl CToolKit {
     }
 
     pub fn transpile_type(&self, typ: &Type) -> Option<CType> {
-        fn map_type(type_name: &String) -> Option<CType> {
-            match type_name.as_str() {
-                "Int32" => Some(int_type()),
-                "Int64" => Some(long_type()),
-                "Float32" => Some(float_type()),
-                "Float64" => Some(double_type()),
-                "Bool" => Some(int_type()),
+        fn map_type(type_name: &SchemaIdentifier) -> Option<CType> {
+            match type_name {
+                SchemaIdentifier::Int32 => Some(int_type()),
+                SchemaIdentifier::Int64 => Some(long_type()),
+                SchemaIdentifier::Float32 => Some(float_type()),
+                SchemaIdentifier::Float64 => Some(double_type()),
+                SchemaIdentifier::Bool => Some(int_type()),
                 _ => None,
             }
         }
@@ -80,10 +80,12 @@ impl CToolKit {
         match typ {
             Type::Addr(_) => Ok(zero_literal().to_expression(), CSrcPatch::default()),
             Type::Ref(_) => Ok(zero_literal().to_expression(), CSrcPatch::default()),
-            Type::Dim(dimtype) => match dimtype.identifier.as_str() {
-                "Int32" => Ok(int_min_variable(), limits),
-                "Int64" => Ok(long_min_variable(), limits),
-                "Float64" => Ok(CExpression::Variable("-DBL_MAX".to_string()), float),
+            Type::Dim(dimtype) => match dimtype.identifier {
+                SchemaIdentifier::Int32 => Ok(int_min_variable(), limits),
+                SchemaIdentifier::Int64 => Ok(long_min_variable(), limits),
+                SchemaIdentifier::Float64 => {
+                    Ok(CExpression::Variable("-DBL_MAX".to_string()), float)
+                }
                 _ => Error(Box::new(TypeNotNullable {
                     received_type: typ.clone(),
                 })),

@@ -123,24 +123,79 @@ pub fn type_size_of(type_name: &String) -> Option<i32> {
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct SchemaType {
-    pub identifier: String,
+    pub identifier: SchemaIdentifier,
     pub postfix: TypePostfix,
     pub family: TypeFamily,
     pub size: Option<i32>,
 }
 
+#[derive(Debug, PartialEq, Clone)]
+pub enum SchemaIdentifier {
+    Int32,
+    Int64,
+    Float32,
+    Float64,
+    Bool,
+    Char,
+    UserDefined(String),
+}
+
+impl SchemaIdentifier {
+    pub fn family(&self) -> TypeFamily {
+        match self {
+            SchemaIdentifier::Int32 | SchemaIdentifier::Int64 => TypeFamily::Int,
+            SchemaIdentifier::Float32 | SchemaIdentifier::Float64 => TypeFamily::Float,
+            _ => TypeFamily::None,
+        }
+    }
+
+    pub fn size(&self) -> Option<i32> {
+        match self {
+            SchemaIdentifier::Int32 | SchemaIdentifier::Float32 => Some(32),
+            SchemaIdentifier::Int64 | SchemaIdentifier::Float64 => Some(64),
+            _ => None,
+        }
+    }
+}
+
+impl ToString for SchemaIdentifier {
+    fn to_string(&self) -> String {
+        match self {
+            Self::Int32 => "Int32".to_string(),
+            Self::Int64 => "Int64".to_string(),
+            Self::Float32 => "Float32".to_string(),
+            Self::Float64 => "Float64".to_string(),
+            Self::Bool => "Bool".to_string(),
+            Self::Char => "Char".to_string(),
+            Self::UserDefined(id) => id.clone(),
+        }
+    }
+}
+
 impl SchemaType {
-    pub fn set_identifier(&mut self, new_identifier: String) {
-        self.family = type_family_of(&new_identifier);
-        self.size = type_size_of(&new_identifier);
+    pub fn set_identifier(&mut self, new_identifier: SchemaIdentifier) {
+        self.family = new_identifier.family();
+        self.size = new_identifier.size();
         self.identifier = new_identifier;
+    }
+}
+
+pub fn schema_identifier_from_string(value: String) -> SchemaIdentifier {
+    match value.as_str() {
+        "Int32" => SchemaIdentifier::Int32,
+        "Int64" => SchemaIdentifier::Int64,
+        "Float32" => SchemaIdentifier::Float32,
+        "Float64" => SchemaIdentifier::Float64,
+        "Bool" => SchemaIdentifier::Bool,
+        "Char" => SchemaIdentifier::Char,
+        _ => SchemaIdentifier::UserDefined(value.clone()),
     }
 }
 
 impl ToString for SchemaType {
     fn to_string(&self) -> String {
         let mut output = String::new();
-        output.push_str(self.identifier.as_str());
+        output.push_str(self.identifier.to_string().as_str());
         match self.postfix {
             TypePostfix::Opt => output.push_str("?"),
             TypePostfix::Err => output.push_str("!"),
@@ -225,54 +280,20 @@ impl ToString for Type {
     }
 }
 
-pub fn int32_type() -> SchemaType {
+pub fn schema_type(identifier: SchemaIdentifier) -> SchemaType {
+    let family = identifier.family();
+    let size = identifier.size();
     SchemaType {
-        identifier: "Int32".to_string(),
+        identifier: identifier,
         postfix: TypePostfix::None,
-        family: TypeFamily::Int,
-        size: Some(32),
-    }
-}
-
-pub fn int64_type() -> SchemaType {
-    SchemaType {
-        identifier: "Int64".to_string(),
-        postfix: TypePostfix::None,
-        family: TypeFamily::Int,
-        size: Some(64),
-    }
-}
-
-pub fn float32_type() -> SchemaType {
-    SchemaType {
-        identifier: "Float32".to_string(),
-        postfix: TypePostfix::None,
-        family: TypeFamily::Float,
-        size: Some(32),
-    }
-}
-
-pub fn float64_type() -> SchemaType {
-    SchemaType {
-        identifier: "Float64".to_string(),
-        postfix: TypePostfix::None,
-        family: TypeFamily::Float,
-        size: Some(64),
+        family: family,
+        size: size,
     }
 }
 
 pub fn charseq_type() -> SchemaType {
     SchemaType {
-        identifier: "CharSeq".to_string(),
-        postfix: TypePostfix::None,
-        family: TypeFamily::None,
-        size: None,
-    }
-}
-
-pub fn bool_type() -> SchemaType {
-    SchemaType {
-        identifier: "Bool".to_string(),
+        identifier: SchemaIdentifier::Char,
         postfix: TypePostfix::None,
         family: TypeFamily::None,
         size: None,

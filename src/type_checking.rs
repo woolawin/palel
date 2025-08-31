@@ -1,7 +1,9 @@
 use crate::palel::{
-    Expression, ExpressionType, Literal, MemoryModifier, SchemaType, Type, TypeFamily, TypePostfix,
-    bool_type, charseq_type, float64_type, int32_type,
+    Expression, ExpressionType, Literal, MemoryModifier, SchemaIdentifier, SchemaType, Type,
+    TypeFamily, TypePostfix, charseq_type, schema_type,
 };
+
+use SchemaIdentifier::*;
 
 pub fn determine_variable_type(
     memory: MemoryModifier,
@@ -44,13 +46,13 @@ pub fn determine_variable_type(
 pub fn type_of_expression(expr: &Expression) -> Option<ExpressionType> {
     match expr {
         Expression::Literal(literal) => match literal {
-            Literal::Boolean(_) => Some(ExpressionType::Dim(bool_type())),
+            Literal::Boolean(_) => Some(ExpressionType::Dim(schema_type(Bool))),
             Literal::Null => Some(ExpressionType::Null),
             Literal::Number(value) => {
                 if value.contains(".") {
-                    Some(ExpressionType::Dim(float64_type()))
+                    Some(ExpressionType::Dim(schema_type(Float64)))
                 } else {
-                    Some(ExpressionType::Dim(int32_type()))
+                    Some(ExpressionType::Dim(schema_type(Int32)))
                 }
             }
             Literal::String(_) => Some(ExpressionType::Dim(charseq_type())),
@@ -108,31 +110,71 @@ pub fn can_implicitly_convert(to: &SchemaType, from: &SchemaType) -> bool {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::palel::{bool_type, float32_type, float64_type, int32_type, int64_type};
+    use crate::palel::schema_type;
+    use SchemaIdentifier::*;
 
     #[test]
     fn test_same_types() {
-        assert!(can_implicitly_convert(&int32_type(), &int32_type()));
-        assert!(can_implicitly_convert(&int64_type(), &int64_type()));
-        assert!(can_implicitly_convert(&float32_type(), &float32_type()));
-        assert!(can_implicitly_convert(&float64_type(), &float64_type()));
-        assert!(can_implicitly_convert(&bool_type(), &bool_type()));
+        assert!(can_implicitly_convert(
+            &schema_type(Int32),
+            &schema_type(Int32)
+        ));
+        assert!(can_implicitly_convert(
+            &schema_type(Int64),
+            &schema_type(Int64)
+        ));
+        assert!(can_implicitly_convert(
+            &schema_type(Float32),
+            &schema_type(Float32)
+        ));
+        assert!(can_implicitly_convert(
+            &schema_type(Float64),
+            &schema_type(Float64)
+        ));
+        assert!(can_implicitly_convert(
+            &schema_type(Bool),
+            &schema_type(Bool)
+        ));
     }
 
     #[test]
     fn test_widening() {
-        assert!(can_implicitly_convert(&int64_type(), &int32_type()));
-        assert!(can_implicitly_convert(&float64_type(), &float32_type()));
+        assert!(can_implicitly_convert(
+            &schema_type(Int64),
+            &schema_type(Int32)
+        ));
+        assert!(can_implicitly_convert(
+            &schema_type(Float64),
+            &schema_type(Float32)
+        ));
 
-        assert!(!can_implicitly_convert(&int32_type(), &int64_type()));
-        assert!(!can_implicitly_convert(&float32_type(), &float64_type()));
+        assert!(!can_implicitly_convert(
+            &schema_type(Int32),
+            &schema_type(Int64)
+        ));
+        assert!(!can_implicitly_convert(
+            &schema_type(Float32),
+            &schema_type(Float64)
+        ));
     }
 
     #[test]
     fn test_incompatible() {
-        assert!(!can_implicitly_convert(&int64_type(), &float64_type()));
-        assert!(!can_implicitly_convert(&float64_type(), &int64_type()));
-        assert!(!can_implicitly_convert(&bool_type(), &int64_type()));
-        assert!(!can_implicitly_convert(&float64_type(), &bool_type()));
+        assert!(!can_implicitly_convert(
+            &schema_type(Int64),
+            &schema_type(Float64)
+        ));
+        assert!(!can_implicitly_convert(
+            &schema_type(Float64),
+            &schema_type(Int64)
+        ));
+        assert!(!can_implicitly_convert(
+            &schema_type(Bool),
+            &schema_type(Int64)
+        ));
+        assert!(!can_implicitly_convert(
+            &schema_type(Float64),
+            &schema_type(Bool)
+        ));
     }
 }
