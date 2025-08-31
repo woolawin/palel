@@ -86,8 +86,10 @@ fn render_function_call(function_call: &CFunctionCall) -> String {
 fn render_expression(argument: &CExpression) -> String {
     match argument {
         CExpression::Literal(literal) => render_literal(literal),
+        CExpression::Variable(variable) => variable.clone(),
     }
 }
+
 fn render_literal(literal: &CLiteral) -> String {
     match literal {
         CLiteral::Number(value) => value.clone(),

@@ -1,6 +1,7 @@
 use crate::c::*;
 use crate::compilation_error::{
-    CompilationError, CouldNotTranspileType, IncompatibleTypes, VariableTypeAmbiguous,
+    CompilationError, CouldNotTranspileType, IncompatibleTypes, TypeNotNullable,
+    VariableTypeAmbiguous,
 };
 use crate::core::Of;
 use crate::palel::*;
@@ -46,7 +47,7 @@ fn transpile_program(input: &Program, toolkit: &CToolKit) -> CTranspile<CFunctio
     let ret_stmt = Return {
         value: Some(Literal::Number("0".to_string()).to_expression()),
     };
-    match transpile_return(&ret_stmt) {
+    match transpile_return(&ret_stmt, toolkit) {
         Error(err) => return Error(err),
         Ok(ret, in_patch) => {
             merge_patch(&mut patch, &in_patch);
@@ -87,7 +88,7 @@ fn transpile_statement(input: &Statement, toolkit: &CToolKit) -> CTranspile<CSta
                 Ok(function_call, in_patch) => Ok(function_call.to_statement(), in_patch),
             }
         }
-        Statement::Return(ret) => match transpile_return(ret) {
+        Statement::Return(ret) => match transpile_return(ret, toolkit) {
             Error(err) => Error(err),
             Ok(ret, patch) => Ok(ret.to_statement(), patch),
         },
@@ -114,18 +115,34 @@ fn transpile_variable_declaration(
     };
 
     let expression_type = match type_of_expression(&input.expression) {
-        Some(t) => t,
+        Some(t) => {
+            if t.is_null() {
+                variable_type.clone()
+            } else {
+                t
+            }
+        }
         None => return Error(Box::new(VariableTypeAmbiguous {})),
     };
 
-    if !is_valid_expression_assignment(variable_type.clone(), expression_type.clone()) {
+    if !is_valid_expression_assignment(&variable_type, &expression_type) {
         return Error(Box::new(IncompatibleTypes {
             expected: variable_type,
             actual: expression_type,
         }));
     }
 
-    let expression = transpile_expression(&input.expression);
+    let mut patch = CSrcPatch::default();
+
+    let expression = match transpile_expression(&input.expression, &expression_type, toolkit) {
+        Ok(expr, in_patch) => {
+            merge_patch(&mut patch, &in_patch);
+            expr
+        }
+        Error(err) => {
+            return Error(err);
+        }
+    };
 
     let var = CVariableDeclaration {
         name: input.identifier.clone(),
@@ -138,12 +155,16 @@ fn transpile_variable_declaration(
     Ok(var, CSrcPatch::default())
 }
 
-fn transpile_return(input: &Return) -> CTranspile<CReturn> {
-    let ret = CReturn {
-        value: input.value.as_ref().map(|expr| transpile_expression(&expr)),
-    };
-
-    Ok(ret, CSrcPatch::default())
+fn transpile_return(input: &Return, toolkit: &CToolKit) -> CTranspile<CReturn> {
+    match &input.value {
+        Some(value) => match transpile_expression_unknown_type(&value, toolkit) {
+            Ok(expr, in_patch) => Ok(CReturn { value: Some(expr) }, in_patch),
+            Error(e) => {
+                return Error(e);
+            }
+        },
+        None => Ok(CReturn { value: None }, CSrcPatch::default()),
+    }
 }
 
 fn transpile_procedure_call(
@@ -153,40 +174,90 @@ fn transpile_procedure_call(
     if !input.interface.is_empty() {
         return toolkit.transpile_interface_call(input);
     }
-    let function_call = CFunctionCall {
-        function_name: input.identifier.clone(),
-        arguments: transpile_expressions(&input.arguments),
+
+    let mut patch = CSrcPatch::default();
+    let expressions = match transpile_expressions(&input.arguments, toolkit) {
+        Ok(exprs, in_patch) => {
+            merge_patch(&mut patch, &in_patch);
+            exprs
+        }
+        Error(e) => {
+            return Error(e);
+        }
     };
 
-    Ok(function_call, CSrcPatch::default())
+    let function_call = CFunctionCall {
+        function_name: input.identifier.clone(),
+        arguments: expressions,
+    };
+
+    Ok(function_call, patch)
 }
 
-pub fn transpile_expressions(input: &Vec<Expression>) -> Vec<CExpression> {
+pub fn transpile_expressions(
+    input: &Vec<Expression>,
+    toolkit: &CToolKit,
+) -> CTranspile<Vec<CExpression>> {
+    let mut patch = CSrcPatch::default();
     let mut expressions: Vec<CExpression> = vec![];
     for argument in input {
-        expressions.push(transpile_expression(argument));
+        let expr = match transpile_expression_unknown_type(argument, toolkit) {
+            Ok(expr, in_patch) => {
+                merge_patch(&mut patch, &in_patch);
+                expr
+            }
+            Error(e) => {
+                return Error(e);
+            }
+        };
+        expressions.push(expr);
     }
-    expressions
+    Ok(expressions, patch)
 }
 
-fn transpile_expression(input: &Expression) -> CExpression {
+fn transpile_expression_unknown_type(
+    input: &Expression,
+    toolkit: &CToolKit,
+) -> CTranspile<CExpression> {
+    let typ = match type_of_expression(input) {
+        Some(t) => t,
+        None => {
+            return Error(Box::new(VariableTypeAmbiguous {}));
+        }
+    };
     match input {
-        Expression::Literal(literal) => transpile_literal(&literal).to_expression(),
+        Expression::Literal(literal) => transpile_literal(&literal, &typ, toolkit),
     }
 }
 
-fn transpile_literal(input: &Literal) -> CLiteral {
+fn transpile_expression(
+    input: &Expression,
+    typ: &Type,
+    toolkit: &CToolKit,
+) -> CTranspile<CExpression> {
     match input {
-        Literal::String(str) => CLiteral::String(str.clone()),
-        Literal::Number(num) => CLiteral::Number(num.clone()),
+        Expression::Literal(literal) => transpile_literal(&literal, typ, toolkit),
+    }
+}
+
+fn transpile_literal(input: &Literal, typ: &Type, toolkit: &CToolKit) -> CTranspile<CExpression> {
+    match input {
+        Literal::String(str) => Ok(
+            CLiteral::String(str.clone()).to_expression(),
+            CSrcPatch::default(),
+        ),
+        Literal::Number(num) => Ok(
+            CLiteral::Number(num.clone()).to_expression(),
+            CSrcPatch::default(),
+        ),
         Literal::Boolean(value) => {
             if *value {
-                true_literal()
+                Ok(true_literal().to_expression(), CSrcPatch::default())
             } else {
-                false_literal()
+                Ok(false_literal().to_expression(), CSrcPatch::default())
             }
         }
-        Literal::Null => CLiteral::Number("0".to_string()),
+        Literal::Null => toolkit.transpile_null(typ),
     }
 }
 
@@ -468,7 +539,8 @@ mod tests {
                                 name: "int".to_string(),
                                 is_pointer: false,
                             },
-                            value: CLiteral::Number("0".to_string()).to_expression(),
+                            value: CExpression::Variable("INT_MIN".to_string()),
+                            //value: CLiteral::Number("0".to_string()).to_expression(),
                         }
                         .to_statement(),
                         CReturn {

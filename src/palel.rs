@@ -161,6 +161,15 @@ pub enum Type {
     Dim(SchemaType),
 }
 
+impl Type {
+    pub fn is_null(&self) -> bool {
+        match self {
+            Type::Dim(typ) => typ.is_null(),
+            _ => false,
+        }
+    }
+}
+
 impl ToString for Type {
     fn to_string(&self) -> String {
         let mut output = String::new();
@@ -226,6 +235,15 @@ pub fn float64_type() -> SchemaType {
         postfix: TypePostfix::None,
         family: TypeFamily::Float,
         size: Some(64),
+    }
+}
+
+pub fn charseq_type() -> SchemaType {
+    SchemaType {
+        identifier: "CharSeq".to_string(),
+        postfix: TypePostfix::None,
+        family: TypeFamily::None,
+        size: None,
     }
 }
 

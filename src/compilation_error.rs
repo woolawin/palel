@@ -4,8 +4,9 @@ const NOOP_ERROR: i32 = 1;
 const DISK_ERROR: i32 = 2;
 const PARSE_ERROR: i32 = 3;
 const LOGIC_ERROR: i32 = 4;
-const TRANSPILE_ERROR: i32 = 5;
-const DOWNSTREAM_ERROR: i32 = 6;
+const TYPE_ERROR: i32 = 5;
+const TRANSPILE_ERROR: i32 = 20;
+const DOWNSTREAM_ERROR: i32 = 21;
 
 pub trait CompilationError {
     fn message(&self) -> String;
@@ -119,7 +120,7 @@ impl CompilationError for CouldNotTranspileType {
 
 pub struct IncompatibleTypes {
     pub expected: Type,
-    pub actual: SchemaType,
+    pub actual: Type,
 }
 
 impl CompilationError for IncompatibleTypes {
@@ -132,6 +133,19 @@ impl CompilationError for IncompatibleTypes {
     }
 
     fn exit_code(&self) -> i32 {
-        LOGIC_ERROR
+        TYPE_ERROR
+    }
+}
+
+pub struct TypeNotNullable {
+    pub received_type: Type,
+}
+
+impl CompilationError for TypeNotNullable {
+    fn message(&self) -> String {
+        format!("type {} is not nullable", self.received_type.to_string())
+    }
+    fn exit_code(&self) -> i32 {
+        TYPE_ERROR
     }
 }

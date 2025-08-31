@@ -77,6 +77,7 @@ impl CLiteral {
 #[derive(Debug, PartialEq)]
 pub enum CExpression {
     Literal(CLiteral),
+    Variable(String),
 }
 
 #[derive(Debug, PartialEq)]
