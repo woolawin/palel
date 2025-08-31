@@ -173,7 +173,7 @@ fn get_identifier(rule: Pair<'_, Rule>) -> String {
 }
 
 fn parse_type_spec(rule: Pair<'_, Rule>) -> SchemaType {
-    let mut typ = null_type();
+    let mut typ = SchemaType { identifier: "".to_string(), postfix: TypePostfix::None, family: TypeFamily::None, size: None };
     for inner in rule.into_inner() {
         match inner.as_rule() {
             Rule::type_name => {

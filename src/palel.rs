@@ -184,15 +184,6 @@ impl ToString for Type {
     }
 }
 
-pub fn null_type() -> SchemaType {
-    SchemaType {
-        identifier: "Null".to_string(),
-        postfix: TypePostfix::None,
-        family: TypeFamily::None,
-        size: None,
-    }
-}
-
 pub fn int32_type() -> SchemaType {
     SchemaType {
         identifier: "Int32".to_string(),
