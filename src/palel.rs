@@ -135,10 +135,6 @@ impl SchemaType {
         self.size = type_size_of(&new_identifier);
         self.identifier = new_identifier;
     }
-
-    pub fn is_null(&self) -> bool {
-        self.identifier == "Null"
-    }
 }
 
 impl ToString for SchemaType {
@@ -159,15 +155,7 @@ pub enum Type {
     Addr(Option<SchemaType>),
     Ref(SchemaType),
     Dim(SchemaType),
-}
-
-impl Type {
-    pub fn is_null(&self) -> bool {
-        match self {
-            Type::Dim(typ) => typ.is_null(),
-            _ => false,
-        }
-    }
+    Null,
 }
 
 impl ToString for Type {
@@ -187,6 +175,9 @@ impl ToString for Type {
             Type::Dim(dimtype) => {
                 output.push_str("dim ");
                 output.push_str(dimtype.to_string().as_str());
+            }
+            Type::Null => {
+                output.push_str("null");
             }
         }
         output

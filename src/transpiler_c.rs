@@ -114,13 +114,10 @@ fn transpile_variable_declaration(
     };
 
     let expression_type = match type_of_expression(&input.expression) {
-        Some(t) => {
-            if t.is_null() {
-                variable_type.clone()
-            } else {
-                t
-            }
-        }
+        Some(t) => match t {
+            Type::Null => variable_type.clone(),
+            _ => t,
+        },
         None => return Error(Box::new(VariableTypeAmbiguous {})),
     };
 
