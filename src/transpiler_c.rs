@@ -140,8 +140,16 @@ fn transpile_variable_declaration(
     let var = CVariableDeclaration {
         name: input.identifier.clone(),
         var_type: match toolkit.transpile_type(&variable_type) {
-            Some(t) => t,
-            None => return Error(Box::new(CouldNotTranspileType {})),
+            Ok(typ, in_patch) => match typ {
+                Some(t) => {
+                    merge_patch(&mut patch, &in_patch);
+                    t
+                }
+                None => return Error(Box::new(CouldNotTranspileType {})),
+            },
+            Error(err) => {
+                return Error(err);
+            }
         },
         value: expression,
     };
@@ -437,7 +445,7 @@ mod tests {
         let actual = run(&src);
         let expected = CSrc {
             includes: vec![CInclude {
-                file: "limits.h".to_string(),
+                file: "stdint.h".to_string(),
             }],
             functions: vec![CFunction {
                 name: "main".to_string(),
@@ -450,7 +458,7 @@ mod tests {
                         CVariableDeclaration {
                             name: "a".to_string(),
                             var_type: CType {
-                                name: "int".to_string(),
+                                name: "int32_t".to_string(),
                                 is_pointer: false,
                             },
                             value: CLiteral::Number("1".to_string()).to_expression(),
@@ -459,7 +467,7 @@ mod tests {
                         CVariableDeclaration {
                             name: "b".to_string(),
                             var_type: CType {
-                                name: "int".to_string(),
+                                name: "int32_t".to_string(),
                                 is_pointer: true,
                             },
                             value: CLiteral::Number("2".to_string()).to_expression(),
@@ -468,7 +476,7 @@ mod tests {
                         CVariableDeclaration {
                             name: "c".to_string(),
                             var_type: CType {
-                                name: "int".to_string(),
+                                name: "int32_t".to_string(),
                                 is_pointer: false,
                             },
                             value: CLiteral::Number("3".to_string()).to_expression(),
@@ -486,7 +494,7 @@ mod tests {
                         CVariableDeclaration {
                             name: "e".to_string(),
                             var_type: CType {
-                                name: "int".to_string(),
+                                name: "int32_t".to_string(),
                                 is_pointer: false,
                             },
                             value: CLiteral::Number("-5".to_string()).to_expression(),
@@ -522,7 +530,7 @@ mod tests {
                         CVariableDeclaration {
                             name: "my_z_var".to_string(),
                             var_type: CType {
-                                name: "long".to_string(),
+                                name: "int64_t".to_string(),
                                 is_pointer: false,
                             },
                             value: CLiteral::Number("0".to_string()).to_expression(),
@@ -531,10 +539,10 @@ mod tests {
                         CVariableDeclaration {
                             name: "maybe_num".to_string(),
                             var_type: CType {
-                                name: "int".to_string(),
+                                name: "int32_t".to_string(),
                                 is_pointer: false,
                             },
-                            value: CExpression::Variable("INT_MIN".to_string()),
+                            value: CExpression::Variable("INT32_MIN".to_string()),
                         }
                         .to_statement(),
                         CReturn {

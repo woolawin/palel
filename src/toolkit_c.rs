@@ -41,35 +41,74 @@ impl CToolKit {
         Ok(function_call, patch)
     }
 
-    pub fn transpile_type(&self, typ: &Type) -> Option<CType> {
-        fn map_type(type_name: &SchemaIdentifier) -> Option<CType> {
+    pub fn transpile_type(&self, typ: &Type) -> CTranspile<Option<CType>> {
+        fn patch(stdint: bool) -> CSrcPatch {
+            let mut p = CSrcPatch { includes: vec![] };
+            if stdint {
+                p.includes.push(CInclude {
+                    file: "stdint.h".to_string(),
+                });
+            }
+            p
+        };
+        fn map_type(type_name: &SchemaIdentifier, pointer: bool) -> CTranspile<Option<CType>> {
             match type_name {
-                SchemaIdentifier::Int32 => Some(int_type()),
-                SchemaIdentifier::Int64 => Some(long_type()),
-                SchemaIdentifier::Float32 => Some(float_type()),
-                SchemaIdentifier::Float64 => Some(double_type()),
-                SchemaIdentifier::Bool => Some(int_type()),
-                _ => None,
+                SchemaIdentifier::Int32 => Ok(
+                    Some(CType {
+                        name: "int32_t".to_string(),
+                        is_pointer: pointer,
+                    }),
+                    patch(true),
+                ),
+                SchemaIdentifier::Int64 => Ok(
+                    Some(CType {
+                        name: "int64_t".to_string(),
+                        is_pointer: pointer,
+                    }),
+                    patch(true),
+                ),
+                SchemaIdentifier::Float32 => Ok(
+                    Some(CType {
+                        name: "float".to_string(),
+                        is_pointer: pointer,
+                    }),
+                    patch(false),
+                ),
+                SchemaIdentifier::Float64 => Ok(
+                    Some(CType {
+                        name: "double".to_string(),
+                        is_pointer: pointer,
+                    }),
+                    patch(false),
+                ),
+                SchemaIdentifier::Bool => Ok(
+                    Some(CType {
+                        name: "int".to_string(),
+                        is_pointer: pointer,
+                    }),
+                    patch(false),
+                ),
+                _ => Ok(None, CSrcPatch::default()),
             }
         }
 
-        fn as_pointer(typ: CType) -> CType {
-            CType {
-                name: typ.name,
-                is_pointer: true,
-            }
-        }
         match typ {
-            Type::Addr(_) => Some(void_type(true)),
-            Type::Ref(reftyp) => map_type(&reftyp.identifier).map(as_pointer),
-            Type::Dim(dimtype) => map_type(&dimtype.identifier),
+            Type::Addr(_) => Ok(
+                Some(CType {
+                    name: "void".to_string(),
+                    is_pointer: true,
+                }),
+                CSrcPatch::default(),
+            ),
+            Type::Ref(reftyp) => map_type(&reftyp.identifier, true),
+            Type::Dim(dimtype) => map_type(&dimtype.identifier, false),
         }
     }
 
     pub fn transpile_null(&self, typ: &Type) -> CTranspile<CExpression> {
-        let limits = CSrcPatch {
+        let stdint = CSrcPatch {
             includes: vec![CInclude {
-                file: "limits.h".to_string(),
+                file: "stdint.h".to_string(),
             }],
         };
         let float = CSrcPatch {
@@ -81,8 +120,8 @@ impl CToolKit {
             Type::Addr(_) => Ok(zero_literal().to_expression(), CSrcPatch::default()),
             Type::Ref(_) => Ok(zero_literal().to_expression(), CSrcPatch::default()),
             Type::Dim(dimtype) => match dimtype.identifier {
-                SchemaIdentifier::Int32 => Ok(int_min_variable(), limits),
-                SchemaIdentifier::Int64 => Ok(long_min_variable(), limits),
+                SchemaIdentifier::Int32 => Ok(int32_min_variable(), stdint),
+                SchemaIdentifier::Int64 => Ok(int64_min_variable(), stdint),
                 SchemaIdentifier::Float64 => {
                     Ok(CExpression::Variable("-DBL_MAX".to_string()), float)
                 }
@@ -98,10 +137,10 @@ fn zero_literal() -> CLiteral {
     return CLiteral::Number("0".to_string());
 }
 
-fn int_min_variable() -> CExpression {
-    return CExpression::Variable("INT_MIN".to_string());
+fn int32_min_variable() -> CExpression {
+    return CExpression::Variable("INT32_MIN".to_string());
 }
 
-fn long_min_variable() -> CExpression {
-    return CExpression::Variable("LONG_MIN".to_string());
+fn int64_min_variable() -> CExpression {
+    return CExpression::Variable("INT64_MIN".to_string());
 }
