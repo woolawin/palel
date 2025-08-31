@@ -152,7 +152,7 @@ fn transpile_variable_declaration(
         },
         value: expression,
     };
-    Ok(var, CSrcPatch::default())
+    Ok(var, patch)
 }
 
 fn transpile_return(input: &Return, toolkit: &CToolKit) -> CTranspile<CReturn> {
@@ -443,7 +443,9 @@ mod tests {
         };
         let actual = run(&src);
         let expected = CSrc {
-            includes: vec![],
+            includes: vec![CInclude {
+                file: "limits.h".to_string(),
+            }],
             functions: vec![CFunction {
                 name: "main".to_string(),
                 return_type: CType {
@@ -540,7 +542,6 @@ mod tests {
                                 is_pointer: false,
                             },
                             value: CExpression::Variable("INT_MIN".to_string()),
-                            //value: CLiteral::Number("0".to_string()).to_expression(),
                         }
                         .to_statement(),
                         CReturn {
