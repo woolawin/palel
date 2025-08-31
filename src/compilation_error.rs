@@ -1,4 +1,4 @@
-use crate::palel::Type;
+use crate::palel::{ExpressionType, Type};
 
 const NOOP_ERROR: i32 = 1;
 const DISK_ERROR: i32 = 2;
@@ -120,7 +120,7 @@ impl CompilationError for CouldNotTranspileType {
 
 pub struct IncompatibleTypes {
     pub expected: Type,
-    pub actual: Type,
+    pub actual: ExpressionType,
 }
 
 impl CompilationError for IncompatibleTypes {

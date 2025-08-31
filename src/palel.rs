@@ -151,11 +151,55 @@ impl ToString for SchemaType {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub enum Type {
+pub enum ExpressionType {
     Addr(Option<SchemaType>),
     Ref(SchemaType),
     Dim(SchemaType),
     Null,
+}
+
+impl ExpressionType {
+    pub fn to_type(self) -> Option<Type> {
+        match self {
+            ExpressionType::Addr(t) => Some(Type::Addr(t)),
+            ExpressionType::Ref(t) => Some(Type::Ref(t)),
+            ExpressionType::Dim(t) => Some(Type::Dim(t)),
+            ExpressionType::Null => None,
+        }
+    }
+}
+
+impl ToString for ExpressionType {
+    fn to_string(&self) -> String {
+        let mut output = String::new();
+        match self {
+            ExpressionType::Addr(typ) => {
+                output.push_str("addr ");
+                if let Some(addrtyp) = typ {
+                    output.push_str(addrtyp.to_string().as_str());
+                }
+            }
+            ExpressionType::Ref(reftype) => {
+                output.push_str("ref ");
+                output.push_str(reftype.to_string().as_str());
+            }
+            ExpressionType::Dim(dimtype) => {
+                output.push_str("dim ");
+                output.push_str(dimtype.to_string().as_str());
+            }
+            ExpressionType::Null => {
+                output.push_str("null");
+            }
+        }
+        output
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum Type {
+    Addr(Option<SchemaType>),
+    Ref(SchemaType),
+    Dim(SchemaType),
 }
 
 impl ToString for Type {
@@ -175,9 +219,6 @@ impl ToString for Type {
             Type::Dim(dimtype) => {
                 output.push_str("dim ");
                 output.push_str(dimtype.to_string().as_str());
-            }
-            Type::Null => {
-                output.push_str("null");
             }
         }
         output

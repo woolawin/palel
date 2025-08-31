@@ -63,7 +63,6 @@ impl CToolKit {
             Type::Addr(_) => Some(void_type(true)),
             Type::Ref(reftyp) => map_type(&reftyp.identifier).map(as_pointer),
             Type::Dim(dimtype) => map_type(&dimtype.identifier),
-            Type::Null => None,
         }
     }
 
@@ -81,7 +80,6 @@ impl CToolKit {
         match typ {
             Type::Addr(_) => Ok(zero_literal().to_expression(), CSrcPatch::default()),
             Type::Ref(_) => Ok(zero_literal().to_expression(), CSrcPatch::default()),
-            Type::Null => panic!("this does not make sense"),
             Type::Dim(dimtype) => match dimtype.identifier.as_str() {
                 "Int32" => Ok(int_min_variable(), limits),
                 "Int64" => Ok(long_min_variable(), limits),

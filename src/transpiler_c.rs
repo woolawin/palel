@@ -114,10 +114,7 @@ fn transpile_variable_declaration(
     };
 
     let expression_type = match type_of_expression(&input.expression) {
-        Some(t) => match t {
-            Type::Null => variable_type.clone(),
-            _ => t,
-        },
+        Some(t) => t,
         None => return Error(Box::new(VariableTypeAmbiguous {})),
     };
 
@@ -130,7 +127,7 @@ fn transpile_variable_declaration(
 
     let mut patch = CSrcPatch::default();
 
-    let expression = match transpile_expression(&input.expression, &expression_type, toolkit) {
+    let expression = match transpile_expression(&input.expression, &variable_type, toolkit) {
         Ok(expr, in_patch) => {
             merge_patch(&mut patch, &in_patch);
             expr
@@ -215,7 +212,7 @@ fn transpile_expression_unknown_type(
     input: &Expression,
     toolkit: &CToolKit,
 ) -> CTranspile<CExpression> {
-    let typ = match type_of_expression(input) {
+    let typ = match type_of_expression(input).and_then(ExpressionType::to_type) {
         Some(t) => t,
         None => {
             return Error(Box::new(VariableTypeAmbiguous {}));

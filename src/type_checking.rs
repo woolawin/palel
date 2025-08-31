@@ -1,6 +1,6 @@
 use crate::palel::{
-    Expression, Literal, MemoryModifier, SchemaType, Type, TypeFamily, TypePostfix, bool_type,
-    charseq_type, float64_type, int32_type,
+    Expression, ExpressionType, Literal, MemoryModifier, SchemaType, Type, TypeFamily, TypePostfix,
+    bool_type, charseq_type, float64_type, int32_type,
 };
 
 pub fn determine_variable_type(
@@ -14,7 +14,6 @@ pub fn determine_variable_type(
                 Some(addrtyp) => Some(Type::Ref(addrtyp)),
                 None => None,
             },
-            Type::Null => None,
             Type::Dim(schema) => Some(Type::Ref(schema)),
             rf @ Type::Ref(_) => Some(rf),
         }
@@ -23,10 +22,7 @@ pub fn determine_variable_type(
         MemoryModifier::Dim | MemoryModifier::Var => match provided_schema {
             Some(schema) => Some(Type::Dim(schema)),
             None => match type_of_expression(expr) {
-                Some(t) => match t {
-                    Type::Null => None,
-                    _ => Some(t),
-                },
+                Some(t) => t.to_type(),
                 None => {
                     return None;
                 }
@@ -36,7 +32,7 @@ pub fn determine_variable_type(
         MemoryModifier::Ref => match provided_schema {
             Some(schema) => Some(Type::Ref(schema)),
             None => match type_of_expression(expr) {
-                Some(t) => as_ref(t),
+                Some(t) => t.to_type().and_then(as_ref),
                 None => {
                     return None;
                 }
@@ -45,51 +41,52 @@ pub fn determine_variable_type(
     }
 }
 
-pub fn type_of_expression(expr: &Expression) -> Option<Type> {
+pub fn type_of_expression(expr: &Expression) -> Option<ExpressionType> {
     match expr {
         Expression::Literal(literal) => match literal {
-            Literal::Boolean(_) => Some(Type::Dim(bool_type())),
-            Literal::Null => Some(Type::Null),
+            Literal::Boolean(_) => Some(ExpressionType::Dim(bool_type())),
+            Literal::Null => Some(ExpressionType::Null),
             Literal::Number(value) => {
                 if value.contains(".") {
-                    Some(Type::Dim(float64_type()))
+                    Some(ExpressionType::Dim(float64_type()))
                 } else {
-                    Some(Type::Dim(int32_type()))
+                    Some(ExpressionType::Dim(int32_type()))
                 }
             }
-            Literal::String(_) => Some(Type::Dim(charseq_type())),
+            Literal::String(_) => Some(ExpressionType::Dim(charseq_type())),
         },
     }
 }
 
-pub fn is_valid_expression_assignment(to: &Type, from: &Type) -> bool {
+pub fn is_valid_expression_assignment(to: &Type, from: &ExpressionType) -> bool {
     match (to, from) {
-        (Type::Addr(to_type), Type::Addr(from_type)) => match (to_type, from_type) {
+        (Type::Addr(to_type), ExpressionType::Addr(from_type)) => match (to_type, from_type) {
             (None, _) => true,
             (Some(_), None) => false,
             (Some(to_addrtype), Some(from_addrtype)) => {
                 can_implicitly_convert(to_addrtype, from_addrtype)
             }
         },
-        (Type::Addr(to_type), Type::Dim(from_type) | Type::Ref(from_type)) => match to_type {
-            None => true,
-            Some(to_reftype) => can_implicitly_convert(to_reftype, from_type),
-        },
-        (Type::Addr(_), Type::Null) => true,
-        (Type::Ref(to_reftype), Type::Ref(from_reftype)) => {
+        (Type::Addr(to_type), ExpressionType::Dim(from_type) | ExpressionType::Ref(from_type)) => {
+            match to_type {
+                None => true,
+                Some(to_reftype) => can_implicitly_convert(to_reftype, from_type),
+            }
+        }
+        (Type::Addr(_), ExpressionType::Null) => true,
+        (Type::Ref(to_reftype), ExpressionType::Ref(from_reftype)) => {
             can_implicitly_convert(to_reftype, from_reftype)
         }
-        (Type::Ref(to_reftype), Type::Dim(from_dimtype)) => {
+        (Type::Ref(to_reftype), ExpressionType::Dim(from_dimtype)) => {
             can_implicitly_convert(to_reftype, from_dimtype)
         }
-        (Type::Ref(_), Type::Addr(_)) => false,
-        (Type::Ref(schema), Type::Null) => schema.postfix == TypePostfix::Opt,
-        (Type::Dim(to_dimtype), Type::Dim(from_dimtype)) => {
+        (Type::Ref(_), ExpressionType::Addr(_)) => false,
+        (Type::Ref(schema), ExpressionType::Null) => schema.postfix == TypePostfix::Opt,
+        (Type::Dim(to_dimtype), ExpressionType::Dim(from_dimtype)) => {
             can_implicitly_convert(to_dimtype, from_dimtype)
         }
-        (Type::Dim(_), Type::Addr(_) | Type::Ref(_)) => false,
-        (Type::Dim(schema), Type::Null) => schema.postfix == TypePostfix::Opt,
-        (Type::Null, _) => false, // this case does not make sense so should never happen
+        (Type::Dim(_), ExpressionType::Addr(_) | ExpressionType::Ref(_)) => false,
+        (Type::Dim(schema), ExpressionType::Null) => schema.postfix == TypePostfix::Opt,
     }
 }
 
