@@ -1,4 +1,4 @@
-use crate::palel::{SchemaType, Type};
+use crate::palel::Type;
 
 const NOOP_ERROR: i32 = 1;
 const DISK_ERROR: i32 = 2;

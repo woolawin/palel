@@ -1,7 +1,6 @@
 use crate::c::*;
 use crate::compilation_error::{
-    CompilationError, CouldNotTranspileType, IncompatibleTypes, TypeNotNullable,
-    VariableTypeAmbiguous,
+    CompilationError, CouldNotTranspileType, IncompatibleTypes, VariableTypeAmbiguous,
 };
 use crate::core::Of;
 use crate::palel::*;
