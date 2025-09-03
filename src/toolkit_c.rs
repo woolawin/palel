@@ -1,13 +1,11 @@
-use crate::c::{
-    CExpression, CFunctionCall, CInclude, CLiteral, CSrcPatch, CType, double_type, float_type,
-    int_type, long_type, void_type,
-};
+use crate::c::{CExpression, CFunctionCall, CInclude, CLiteral, CSrcPatch, CType};
 use crate::compilation_error::{TypeNotNullable, UnknownInterface};
 use crate::palel::{ProcedureCall, SchemaIdentifier, Type};
 use crate::transpiler_c::{CTranspile, transpile_expressions};
 use crate::transpiler_c_patch::merge_patch;
 
 use CTranspile::*;
+use SchemaIdentifier::*;
 
 pub struct CToolKit {}
 
@@ -53,37 +51,44 @@ impl CToolKit {
         };
         fn map_type(type_name: &SchemaIdentifier, pointer: bool) -> CTranspile<Option<CType>> {
             match type_name {
-                SchemaIdentifier::Int32 => Ok(
+                Int32 => Ok(
                     Some(CType {
                         name: "int32_t".to_string(),
                         is_pointer: pointer,
                     }),
                     patch(true),
                 ),
-                SchemaIdentifier::Int64 => Ok(
+                Int64 => Ok(
                     Some(CType {
                         name: "int64_t".to_string(),
                         is_pointer: pointer,
                     }),
                     patch(true),
                 ),
-                SchemaIdentifier::Float32 => Ok(
+                Float32 => Ok(
                     Some(CType {
                         name: "float".to_string(),
                         is_pointer: pointer,
                     }),
                     patch(false),
                 ),
-                SchemaIdentifier::Float64 => Ok(
+                Float64 => Ok(
                     Some(CType {
                         name: "double".to_string(),
                         is_pointer: pointer,
                     }),
                     patch(false),
                 ),
-                SchemaIdentifier::Bool => Ok(
+                Bool => Ok(
                     Some(CType {
                         name: "int".to_string(),
+                        is_pointer: pointer,
+                    }),
+                    patch(false),
+                ),
+                Char => Ok(
+                    Some(CType {
+                        name: "char".to_string(),
                         is_pointer: pointer,
                     }),
                     patch(false),
@@ -125,6 +130,14 @@ impl CToolKit {
                 SchemaIdentifier::Float64 => {
                     Ok(CExpression::Variable("-DBL_MAX".to_string()), float)
                 }
+                SchemaIdentifier::Bool => Ok(
+                    CLiteral::Number("3".to_string()).to_expression(),
+                    CSrcPatch::default(),
+                ),
+                SchemaIdentifier::Char => Ok(
+                    CLiteral::Char("\\0".to_string()).to_expression(),
+                    CSrcPatch::default(),
+                ),
                 _ => Error(Box::new(TypeNotNullable {
                     received_type: typ.clone(),
                 })),

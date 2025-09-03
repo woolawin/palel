@@ -94,6 +94,7 @@ fn render_literal(literal: &CLiteral) -> String {
     match literal {
         CLiteral::Number(value) => value.clone(),
         CLiteral::String(value) => format!("\"{}\"", value),
+        CLiteral::Char(value) => format!("'{}'", value),
     }
 }
 

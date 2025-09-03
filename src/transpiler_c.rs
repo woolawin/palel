@@ -243,10 +243,22 @@ fn transpile_expression(
 
 fn transpile_literal(input: &Literal, typ: &Type, toolkit: &CToolKit) -> CTranspile<CExpression> {
     match input {
-        Literal::String(str) => Ok(
-            CLiteral::String(str.clone()).to_expression(),
-            CSrcPatch::default(),
-        ),
+        Literal::String(str) => {
+            let val = str.clone();
+            let patch = CSrcPatch::default();
+            match typ {
+                Type::Dim(schema) | Type::Ref(schema) => {
+                    if schema.identifier == SchemaIdentifier::Char {
+                        println!("is a Char");
+                        Ok(CLiteral::Char(val).to_expression(), patch)
+                    } else {
+                        println!("is a String");
+                        Ok(CLiteral::String(val).to_expression(), patch)
+                    }
+                }
+                _ => Ok(CLiteral::String(val).to_expression(), patch),
+            }
+        }
         Literal::Number(num) => Ok(
             CLiteral::Number(num.clone()).to_expression(),
             CSrcPatch::default(),
@@ -428,6 +440,18 @@ mod tests {
                         .to_statement(),
                         VariableDeclaration {
                             memory: MemoryModifier::Dim,
+                            identifier: "letter".to_string(),
+                            schema_type: Some(SchemaType {
+                                identifier: SchemaIdentifier::Char,
+                                postfix: TypePostfix::None,
+                                family: TypeFamily::None,
+                                width: None,
+                            }),
+                            expression: Expression::Literal(Literal::String("A".to_string())),
+                        }
+                        .to_statement(),
+                        VariableDeclaration {
+                            memory: MemoryModifier::Dim,
                             identifier: "maybe_num".to_string(),
                             schema_type: Some(SchemaType {
                                 identifier: SchemaIdentifier::Int32,
@@ -534,6 +558,15 @@ mod tests {
                                 is_pointer: false,
                             },
                             value: CLiteral::Number("0".to_string()).to_expression(),
+                        }
+                        .to_statement(),
+                        CVariableDeclaration {
+                            name: "letter".to_string(),
+                            var_type: CType {
+                                name: "char".to_string(),
+                                is_pointer: false,
+                            },
+                            value: CLiteral::Char("A".to_string()).to_expression(),
                         }
                         .to_statement(),
                         CVariableDeclaration {
